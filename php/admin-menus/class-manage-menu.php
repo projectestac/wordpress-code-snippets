@@ -28,6 +28,14 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 	 * Register action and filter hooks
 	 */
 	public function run() {
+
+        // XTEC ************ AFEGIT - Restrict access to xtecadmin
+        // 19.10.28 @aginard
+        if (!is_xtec_super_admin()) {
+            return false;
+        }
+        //******************* FI
+
 		parent::run();
 
 		if ( code_snippets()->admin->is_compact_menu() ) {
