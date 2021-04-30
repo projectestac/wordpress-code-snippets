@@ -3,7 +3,7 @@
 /**
  * HTML code for the Manage Snippets page
  *
- * @package Code_Snippets
+ * @package    Code_Snippets
  * @subpackage Views
  *
  * @var Code_Snippets_Manage_Menu $this
@@ -42,7 +42,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$this->list_table->search_notice();
 		?></h1>
 
-	<?php $this->list_table->views(); ?>
+	<?php
+	do_action( 'code_snippets/admin/manage/before_list_table' );
+	$this->list_table->views();
+	?>
 
 	<form method="get" action="">
 		<?php
@@ -51,7 +54,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		?>
 	</form>
 	<form method="post" action="">
-		<input type="hidden" id="code_snippets_ajax_nonce" value="<?php echo esc_attr( wp_create_nonce( 'code_snippets_manage' ) ); ?>">
+		<input type="hidden" id="code_snippets_ajax_nonce" value="<?php echo esc_attr( wp_create_nonce( 'code_snippets_manage_ajax' ) ); ?>">
 
 		<?php
 		$this->list_table->required_form_fields();

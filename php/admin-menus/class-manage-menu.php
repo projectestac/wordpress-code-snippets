@@ -2,7 +2,7 @@
 
 /**
  * This class handles the manage snippets menu
- * @since 2.4.0
+ * @since   2.4.0
  * @package Code_Snippets
  */
 class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
@@ -71,11 +71,11 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 		$sub = code_snippets()->get_menu_slug( isset( $_GET['sub'] ) ? $_GET['sub'] : 'snippets' );
 
 		$classmap = array(
-			'snippets' => 'manage',
-			'add-snippet' => 'edit',
-			'edit-snippet' => 'edit',
-			'import-snippets' => 'import',
-			'snippets-settings' => 'settings',
+			'snippets'             => 'manage',
+			'add-snippet'          => 'edit',
+			'edit-snippet'         => 'edit',
+			'import-code-snippets' => 'import',
+			'snippets-settings'    => 'settings',
 		);
 
 		if ( isset( $classmap[ $sub ], code_snippets()->admin->menus[ $classmap[ $sub ] ] ) ) {
@@ -132,6 +132,16 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 			plugins_url( 'js/min/manage.js', $plugin->file ),
 			array(), $plugin->version, true
 		);
+
+		wp_localize_script(
+			'code-snippets-manage-js',
+			'code_snippets_manage_i18n',
+			array(
+				'activate'         => __( 'Activate', 'code-snippets' ),
+				'deactivate'       => __( 'Deactivate', 'code-snippets' ),
+				'activation_error' => __( 'An error occurred when attempting to activate', 'code-snippets' ),
+			)
+		);
 	}
 
 	/**
@@ -164,9 +174,9 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 	/**
 	 * Handles saving the user's snippets per page preference
 	 *
-	 * @param  mixed  $status
-	 * @param  string $option The screen option name
-	 * @param  mixed  $value
+	 * @param mixed  $status
+	 * @param string $option The screen option name
+	 * @param mixed  $value
 	 *
 	 * @return mixed
 	 */
@@ -182,10 +192,13 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 	 * Handle AJAX requests
 	 */
 	public function ajax_callback() {
-		check_ajax_referer( 'code_snippets_manage' );
+		check_ajax_referer( 'code_snippets_manage_ajax' );
 
 		if ( ! isset( $_POST['field'], $_POST['snippet'] ) ) {
-			wp_die( 'Snippet data not provided' );
+			wp_send_json_error( array(
+				'type'    => 'param_error',
+				'message' => 'incomplete request',
+			) );
 		}
 
 		$snippet_data = json_decode( stripslashes( $_POST['snippet'] ), true );
@@ -196,7 +209,10 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 		if ( 'priority' === $field ) {
 
 			if ( ! isset( $snippet_data['priority'] ) || ! is_numeric( $snippet_data['priority'] ) ) {
-				wp_die( 'missing snippet priority data' );
+				wp_send_json_error( array(
+					'type'    => 'param_error',
+					'message' => 'missing snippet priority data',
+				) );
 			}
 
 			global $wpdb;
@@ -212,13 +228,16 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 		} elseif ( 'active' === $field ) {
 
 			if ( ! isset( $snippet_data['active'] ) ) {
-				wp_die( 'missing snippet active data' );
+				wp_send_json_error( array(
+					'type'    => 'param_error',
+					'message' => 'missing snippet active data',
+				) );
 			}
 
 			if ( $snippet->shared_network ) {
 				$active_shared_snippets = get_option( 'active_shared_network_snippets', array() );
 
-				if ( in_array( $snippet->id, $active_shared_snippets ) !== $snippet->active ) {
+				if ( in_array( $snippet->id, $active_shared_snippets, true ) !== $snippet->active ) {
 
 					$active_shared_snippets = $snippet->active ?
 						array_merge( $active_shared_snippets, array( $snippet->id ) ) :
@@ -229,13 +248,19 @@ class Code_Snippets_Manage_Menu extends Code_Snippets_Admin_Menu {
 			} else {
 
 				if ( $snippet->active ) {
-					activate_snippet( $snippet->id, $snippet->network );
+					$result = activate_snippet( $snippet->id, $snippet->network );
+					if ( ! $result ) {
+						wp_send_json_error( array(
+							'type'    => 'action_error',
+							'message' => 'error activating snippet',
+						) );
+					}
 				} else {
 					deactivate_snippet( $snippet->id, $snippet->network );
 				}
 			}
 		}
 
-		wp_die();
+		wp_send_json_success();
 	}
 }

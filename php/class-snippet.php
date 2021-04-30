@@ -3,24 +3,37 @@
 /**
  * A snippet object
  *
- * @since 2.4.0
+ * @since   2.4.0
  * @package Code_Snippets
  *
- * @property int    $id             The database ID
- * @property string $name           The display name
- * @property string $desc           The formatted description
- * @property string $code           The executable code
- * @property array  $tags           An array of the tags
- * @property string $scope          The scope name
- * @property int    $priority       Execution priority
- * @property bool   $active         The active status
- * @property bool   $network        true if is multisite-wide snippet, false if site-wide
- * @property bool   $shared_network Whether the snippet is a shared network snippet
+ * @property int           $id                 The database ID
+ * @property string        $name               The display name
+ * @property string        $desc               The formatted description
+ * @property string        $code               The executable code
+ * @property array         $tags               An array of the tags
+ * @property string        $scope              The scope name
+ * @property int           $priority           Execution priority
+ * @property bool          $active             The active status
+ * @property bool          $network            true if is multisite-wide snippet, false if site-wide
+ * @property bool          $shared_network     Whether the snippet is a shared network snippet
+ * @property string        $modified           The date and time when the snippet data was most recently saved to the database.
  *
- * @property-read array  $tags_list  The tags in string list format
- * @property-read string $scope_icon The dashicon used to represent the current scope
+ * @property-read array    $tags_list          The tags in string list format
+ * @property-read string   $scope_icon         The dashicon used to represent the current scope
+ * @property-read int      $modified_timestamp The last modification date in Unix timestamp format.
+ * @property-read DateTime $modified_local     The last modification date in the local timezone.
  */
 class Code_Snippet {
+
+	/**
+	 * MySQL datetime format (YYYY-MM-DD hh:mm:ss)
+	 */
+	const DATE_FORMAT = 'Y-m-d H:i:s';
+
+	/**
+	 * Default value used for a datetime variable.
+	 */
+	const DEFAULT_DATE = '0000-00-00 00:00:00';
 
 	/**
 	 * The snippet metadata fields.
@@ -38,6 +51,8 @@ class Code_Snippet {
 		'priority'       => 10,
 		'network'        => null,
 		'shared_network' => null,
+		'created'        => null,
+		'modified'       => null,
 	);
 
 	/**
@@ -240,7 +255,7 @@ class Code_Snippet {
 	private function prepare_scope( $scope ) {
 		$scopes = self::get_all_scopes();
 
-		if ( in_array( $scope, $scopes ) ) {
+		if ( in_array( $scope, $scopes, true ) ) {
 			return $scope;
 		}
 
@@ -306,6 +321,41 @@ class Code_Snippet {
 	}
 
 	/**
+	 * Prepare the modification field by ensuring it is in the correct format.
+	 *
+	 * @param DateTime|string $modified
+	 *
+	 * @return string
+	 */
+	private function prepare_modified( $modified ) {
+
+		/* if the supplied value is a DateTime object, convert it to string representation */
+		if ( $modified instanceof DateTime ) {
+			return $modified->format( self::DATE_FORMAT );
+		}
+
+		/* if the supplied value is probably a timestamp, attempt to convert it to a string */
+		if ( is_numeric( $modified ) ) {
+			return gmdate( self::DATE_FORMAT, $modified );
+		}
+
+		/* if the supplied value is a string, check it is not just the default value */
+		if ( is_string( $modified ) && self::DEFAULT_DATE !== $modified ) {
+			return $modified;
+		}
+
+		/* otherwise, discard the supplied value */
+		return null;
+	}
+
+	/**
+	 * Update the last modification date to the current date and time.
+	 */
+	public function update_modified() {
+		$this->modified = gmdate( Code_Snippet::DATE_FORMAT );
+	}
+
+	/**
 	 * Retrieve the tags in list format
 	 * @return string The tags separated by a comma and a space
 	 */
@@ -366,9 +416,49 @@ class Code_Snippet {
 			$this->fields['shared_network'] = false;
 		} else {
 			$shared_network_snippets = get_site_option( 'shared_network_snippets', array() );
-			$this->fields['shared_network'] = in_array( $this->fields['id'], $shared_network_snippets );
+			$this->fields['shared_network'] = in_array( $this->fields['id'], $shared_network_snippets, true );
 		}
 
 		return $this->fields['shared_network'];
+	}
+
+	/**
+	 * Retrieve the snippet modification date as a timestamp.
+	 *
+	 * @return int Timestamp value.
+	 */
+	private function get_modified_timestamp() {
+		$datetime = DateTime::createFromFormat( self::DATE_FORMAT, $this->modified, new DateTimeZone( 'UTC' ) );
+		return $datetime ? $datetime->getTimestamp() : 0;
+	}
+
+	/**
+	 * Retrieve the modification time in the local timezone.
+	 *
+	 * @return DateTime
+	 */
+	private function get_modified_local() {
+
+		if ( function_exists( 'wp_timezone' ) ) {
+			$timezone = wp_timezone();
+		} else {
+			$timezone = get_option( 'timezone_string' );
+
+			/* calculate the timezone manually if it is not available */
+			if ( ! $timezone ) {
+				$offset = (float) get_option( 'gmt_offset' );
+				$hours = (int) $offset;
+				$minutes = ( $offset - $hours ) * 60;
+
+				$sign = ( $offset < 0 ) ? '-' : '+';
+				$timezone = sprintf( '%s%02d:%02d', $sign, abs( $hours ), abs( $minutes ) );
+			}
+
+			$timezone = new DateTimeZone( $timezone );
+		}
+
+		$datetime = DateTime::createFromFormat( self::DATE_FORMAT, $this->modified, new DateTimeZone( 'UTC' ) );
+		$datetime->setTimezone( $timezone );
+		return $datetime;
 	}
 }

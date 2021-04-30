@@ -1,11 +1,11 @@
 === Code Snippets ===
-Contributors: bungeshea
+Contributors: bungeshea, ver3
 Donate link: https://sheabunge.com/donate
 Tags: code-snippets, snippets, code, php, network, multisite
 Requires at least: 3.6
-Tested up to: 5.2.2
+Tested up to: 5.7.0
 Requires PHP: 5.2
-Stable tag: 2.13.3
+Stable tag: 2.14.1
 License: MIT
 License URI: license.txt
 
@@ -13,7 +13,7 @@ An easy, clean and simple way to run code snippets on your site.
 
 == Description ==
 
-Code Snippets is an easy, clean and simple way to run PHP code snippets on your site. It removes the need to add custom snippets to your theme theme's `functions.php` file.
+Code Snippets is an easy, clean and simple way to run PHP code snippets on your site. It removes the need to add custom snippets to your theme's `functions.php` file.
 
 A snippet is a small chunk of PHP code that you can use to extend the functionality of a WordPress-powered website; essentially a mini-plugin with less load on your site.
 Most snippet-hosting sites tell you to add snippet code to your active theme's `functions.php` file, which can get rather long and messy after a while.
@@ -31,19 +31,20 @@ If you'd like to contribute to the plugin's code or translate it into another la
 
 Code Snippets can be used in these different languages thanks to the following translators:
 
+* Czech  – [Lukáš Tesař](mailto:lukastesar03@gmail.com)
 * Danish - [Finn Sommer Jensen](https://profiles.wordpress.org/finnsommer/)
-* French – [momo-fr](http://www.momofr.net/) and [Shea Bunge](https://sheabunge.com)
+* French – [momo-fr](https://www.momofr.net/) and [Shea Bunge](https://sheabunge.com)
 * Belarusian - [Hrank.com](https://www.hrank.com)
 * Brazilian Portuguese – [Bruno Borges](http://brunoborges.info)
-* French (Canada) - [Dominic Desbiens](http://www.dominicdesbiens.com/)
+* French (Canada) - [Dominic Desbiens](https://www.dominicdesbiens.com/)
 * Indonesian - [Jordan Silaen from ChameleonJohn.com](https://www.chameleonjohn.com/)
-* German - [Mario Siegmann](http://web-alltag.de/), [Joerg Knoerchen](http://www.sensorgrafie.de/), and [David Decker](http://deckerweb.de)
+* German - [Mario Siegmann](https://web-alltag.de/), [Joerg Knoerchen](https://www.sensorgrafie.de/), and [David Decker](https://deckerweb.de)
 * Dutch - [Sander Spies](https://github.com/sander1)
-* Slovak - [Ján Fajčák](http://wp.sk)
+* Slovak - [Ján Fajčák](https://wp.sk)
 * Russian - [Alexander Samsonov](http://www.wordpressplugins.ru/administration/code-snippets.html)
 * Chinese - [Jincheng Shan](http://shanjincheng.com)
-* Croatian - [Borisa Djuraskovic from Web Hosting Hub](http://www.webhostinghub.com/)
-* Japanese - [mt8](http://mt8.biz/)
+* Croatian - [Borisa Djuraskovic from Web Hosting Hub](https://www.webhostinghub.com/)
+* Japanese - [mt8](https://mt8.biz/)
 
 == Installation ==
 
@@ -67,17 +68,38 @@ Network Activating Code Snippets through the Network Dashboard will enable a spe
 
 == Frequently Asked Questions ==
 
-= How can I insert my snippet into the post text editor? =
+= How do I insert snippets into the post text editor? =
 Snippets that you add to this plugin are not meant to be inserted into the text editor. Instead, they are run on your site just as if they were added to your functions.php file.
 
-= Help! I just activated a snippet, and my whole site broke! =
-You can try activating 'safe mode'. All snippets will not execute while safe mode is active, allowing you to access your site and deactivate the snippet that is causing the error. To activate safe mode, add the following line to your wp-config.php file, just before the line that reads `/* That's all, stop editing! Happy blogging. */`:
+= How can I recover my site if it is crashed by a buggy snippet? (method one) =
+You can try activating 'safe mode'. All snippets will not execute while safe mode is active, allowing you to access your site and deactivate the snippet that is causing the error.
+
+To activate safe mode, add the following line to your wp-config.php file, just before the line that reads `/* That's all, stop editing! Happy blogging. */`:
 
     define('CODE_SNIPPETS_SAFE_MODE', true);
 
- To turn safe mode off, either [comment out](http://php.net/manual/language.basic-syntax.comments.php) this line or delete it.
+ To turn safe mode off, either [comment out](https://php.net/manual/language.basic-syntax.comments.php) this line or delete it.
 
-You can also activate safe mode on a per-page basis by appending `?snippets-safe-mode=true` to the URL – this will only work if the current user is logged in as an administrator.
+= How can I recover my site if it is crashed by a buggy snippet? (method two) =
+You can enable safe mode on a per-page basis by appending `&snippets-safe-mode=1` to end of the current page's URL. While safe mode is active, all snippets will not execute, allowing you to login to your site and deactivate any snippets that are causing issues.
+
+For example, to see the WordPress admin area in safe mode, you would change the URL from this:
+
+	https://yoursiteurl.com/wp-admin/admin.php?page=snippets
+
+… to this:
+
+	https://yoursiteurl.com/wp-admin/admin.php?page=snippets&snippets-safe-mode=1
+
+Or, for another example, if you were viewing a page on the front-end of your site, you could change a URL like this:
+
+	https://yoursiteurl.com/about-us/
+
+… to this:
+
+	https://yoursiteurl.com/about-us/?snippets-safe-mode=1
+
+This will only work if the current user is logged in as an administrator – other visitors will see your site as normal.
 
 = Can I search and replace text inside the code editor? =
 The code editor supports several search and replace commands, accessible through keyboard shortcuts:
@@ -95,7 +117,7 @@ No, the snippets are stored in the WordPress database, independent of the theme 
 = Can the plugin be completely uninstalled? =
 If you enable the 'Complete Uninstall' option on the plugin settings page, Code Snippets will clean up all of its data when deleted through the WordPress 'Plugins' menu. This includes all of the stored snippets. If you would like to preserve the snippets, ensure they are exported first.
 
-= Can I copy any snippets I have created to another WordPress site? =
+= Can I copy snippets that I have created to another WordPress site? =
 Yes! You can individually export a single snippet using the link below the snippet name on the 'Manage Snippets' page or bulk export multiple snippets using the 'Bulk Actions' feature. Snippets can later be imported using the 'Import Snippets' page by uploading the export file.
 
 = Can I export my snippets to PHP for a site where I'm not using the Code Snippets plugin? =
@@ -107,11 +129,11 @@ You can run snippets across an entire multisite network by **Network Activating*
 = Where are the snippets stored in my WordPress database? =
 Snippets are stored in the `wp_snippets` table in the WordPress database. The table name may differ depending on what your table prefix is set to.
 
-= I need help with Code Snippets / I have an idea for a new feature for Code Snippets =
+= Where can I go for help or suggest new features? =
 You can get help with Code Snippets, report bugs or errors, and suggest new features and improvements either on the [WordPress Support Forums](https://wordpress.org/support/plugin/code-snippets) or on [GitHub](https://github.com/sheabunge/code-snippets)
 
-= I want to contribute to and help develop the Code Snippets plugin! =
-That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/code-snippets) and send me a pull request.
+= How can I help contribute to the development of the Code Snippets plugin? =
+The best way to do this is to fork the [repository on GitHub](https://github.com/sheabunge/code-snippets) and send a pull request.
 
 == Screenshots ==
 
@@ -121,6 +143,31 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 4. Importing snippets from an export file
 
 == Changelog ==
+
+= 2.14.1 (10 Mar 2021) =
+* Added: Czech translation by [Lukáš Tesař](https://github.com/atomicf4ll).
+* Fixed: Code validator now supports `function_exists` and `class_exists` checks.
+* Fixed: Code validator now supports anonymous functions.
+* Fixed: Issue with saving the hidden columns setting.
+* Fixed: Replaced the outdated tag-it library with [tagger](https://github.com/jcubic/tagger) for powering the snippet tags editor.
+* Added: Code direction setting for RTL users.
+* Updated CodeMirror to version 5.59.4.
+* Added: Additional action hooks and search API thanks to [@Spreeuw](https://github.com/Spreeuw).
+
+= 2.14.0 (26 Jan 2020) =
+* Updated CodeMirror to version 5.50.2.
+* Added: Basic error checking for duplicate functions and classes.
+* Updated Italian translations to fix display issues – thanks to [Francesco Marino](https://360fun.net).
+* Fixed: Ordering snippets in the table by name will now be case-insensitive.
+* Added: Additional API options for retrieving snippets.
+* Fixed: Code editor will now properly highlight embedded HTML, CSS and JavaScript code.
+* Changed the indicator color for inactive snippets from red to grey.
+* Fixed a bug preventing the editor theme from being set to default.
+* Added: Store the time and date when each snippet was last modified.
+* Added: Basic error checking when activating snippets.
+* Fixed: Ensure that imported snippets are always inactive.
+* Fixed: Check the referer on the import menu to prevent CSRF attacks. Thanks to [Chloe with the Wordfence Threat Intelligence team](https://www.wordfence.com/blog/author/wfchloe/) for reporting.
+* Fixed: Ensure that individual snippet action links use proper verification.
 
 = 2.13.3 (13 Mar 2019) =
 * Added: Hover effect to activation switches.
@@ -292,7 +339,7 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Fixed a few strings not being translated
 
 = 2.7.2 (1 Oct 2016) =
-* Updated German translation by [Mario Siegmann](http://web-alltag.de)
+* Updated German translation by [Mario Siegmann](https://web-alltag.de)
 
 = 2.7.1 (30 Sep 2016) =
 * Added Dutch translation by Sander Spies
@@ -304,7 +351,7 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Fixed plugin translations being loaded
 * Increase default snippets per page so that all are usually shown
 * Fixed description field not being imported
-* Updated German translation by [Mario Siegmann](http://web-alltag.de)
+* Updated German translation by [Mario Siegmann](https://web-alltag.de)
 * Fixed issue with CodeMirror rubyblue theme [[#](https://wordpress.org/support/topic/a-problem-with-the-cursor-color-and-the-fix-that-worked-for-me)]
 * Added query var to disable snippet execution. To use, add `?snippets-safe-mode=true` to the URL
 * Fixed snippet fields not importing
@@ -312,7 +359,7 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Fixed a minor XSS vulnerability discovered by Burak Kelebek [[#](https://wordpress.org/support/topic/security-vulnerability-20)]
 
 = 2.6.1 (10 Feb 2016) =
-* Updated German translation by [Mario Siegmann](http://web-alltag.de)
+* Updated German translation by [Mario Siegmann](https://web-alltag.de)
 * Fixed error catching not working correctly
 * Updated error catching to work with snippets including functions and classes
 * Fixed editor autoresizing
@@ -322,7 +369,7 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Updated CodeMirror to version 5.10.0
 * Added `[code_snippets]` shortcode for embedding snippet code in a post
 * Fixed broken snippet search feature [[#](https://wordpress.org/support/topic/search-is-not-working-6)]
-* Added front-end syntax highlighting for shortcode using [PrismJS](http://prismjs.com)
+* Added front-end syntax highlighting for shortcode using [PrismJS](https://prismjs.com)
 
 = 2.5.1 (11 Oct 2016) =
 * Fixed: Ensure errors are fatal before catching them during error checking
@@ -403,7 +450,7 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Improved efficiency of settings component
 
 = 2.0.3 (17 Mar 2015) =
-* Updated German translation by [Joerg Knoerchen](http://www.sensorgrafie.de/)
+* Updated German translation by [Joerg Knoerchen](https://www.sensorgrafie.de/)
 
 = 2.0.2 (05 Mar 2015) =
 * Fix error in table creation code
@@ -425,11 +472,11 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Added support for different CodeMirror themes
 * Integrated tags component into main plugin. Current users of the Code Snippets Tags plugin can safely uninstall it.
 * Added Auto Close Brackets CodeMirror addon (props to TronicLabs)
-* Added Croatian translation by Borisa Djuraskovic from [Web Hosting Hub](http://www.webhostinghub.com)
+* Added Croatian translation by Borisa Djuraskovic from [Web Hosting Hub](https://www.webhostinghub.com)
 * Added Highlight Selection Matches CodeMirror addon (props to TronicLabs)
 * Added Chinese translation thanks to Jincheng Shan
 * Added Russian translation by Alexander Samsonov
-* Added Slovak translation by [Ján Fajčák] from [WordPress Slovakia](http://wp.sk)
+* Added Slovak translation by [Ján Fajčák] from [WordPress Slovakia](https://wp.sk)
 * Added setting to always save and activate snippets by default
 * __Changed:__
 * Added braces to single-line conditionals in line with [new coding standards](https://make.wordpress.org/core/2013/11/13/proposed-coding-standards-change-always-require-braces/)
@@ -460,13 +507,13 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 = 1.9 (11 Nov 2013) =
 * Add and remove network capabilities as super admins are added and removed
 * Updated MP6 icon implementation
-* Replaced buggy trim `<?php` and `?>` functionality with a much more reliable regex method ([#](http://wordpress.org/support/topic/character-gets-cut))
+* Replaced buggy trim `<?php` and `?>` functionality with a much more reliable regex method ([#](https://wordpress.org/support/topic/character-gets-cut))
 * Added French translation thanks to translator [oWEB](http://office-web.net)
-* Fixed snippet failing to save when code contains `%` character, props to [nikan06](http://wordpress.org/support/profile/nikan06) ([#](http://wordpress.org/support/topic/percent-sign-bug))
-* Added 'Save & Deactivate' button to the edit snippet page ([#](http://wordpress.org/support/topic/deactivate-button-in-edit-snippet-page))
+* Fixed snippet failing to save when code contains `%` character, props to [nikan06](https://wordpress.org/support/profile/nikan06) ([#](https://wordpress.org/support/topic/percent-sign-bug))
+* Added 'Save & Deactivate' button to the edit snippet page ([#](https://wordpress.org/support/topic/deactivate-button-in-edit-snippet-page))
 * Removed edit and install capabilities (now only uses the manage capability)
-* Fixed HTML breaking in export files ([#](http://wordpress.org/support/topic/import-problem-7))
-* Make the title of each snippet on the manage page a clickable link to edit the snippet ([#](http://wordpress.org/support/topic/deactivate-button-in-edit-snippet-page?replies=9#post-4682757))
+* Fixed HTML breaking in export files ([#](https://wordpress.org/support/topic/import-problem-7))
+* Make the title of each snippet on the manage page a clickable link to edit the snippet ([#](https://wordpress.org/support/topic/deactivate-button-in-edit-snippet-page?replies=9#post-4682757))
 * Added nonce to edit snippet page
 * Hide row actions on manage snippet page by default
 * Removed screenshots from plugin
@@ -509,30 +556,30 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 
 = 1.7.1 (22 April 2013) =
 * Fix a bug with snippet being set as deactivated when saved
-* Updated PHP Documentation completely. [[View online](http://bungeshea.github.io/code-snippets/api)]
+* Updated PHP Documentation completely. [[View online](https://bungeshea.github.io/code-snippets/api)]
 * Only load admin functions when viewing dashboard
-* Added German translation thanks to [David Decker](http://deckerweb.de)
+* Added German translation thanks to [David Decker](https://deckerweb.de)
 * Allow or deny site administrators access to snippet admin menus. Set your preference in the **Enable Administration Menus** setting under the *Settings > Network Settings* network admin menu.
 * Improve database table creation and upgrade process
 * Optimized to use less database queries
 
 = 1.7 (26 Mar 2013) =
 * Improved plugin API
-* Fixed a bug with saving snippets per page option ([#](http://wordpress.org/support/topic/plugin-code-snippets-snippets-per-page-does-not-work#post-3710991))
+* Fixed a bug with saving snippets per page option ([#](https://wordpress.org/support/topic/plugin-code-snippets-snippets-per-page-does-not-work#post-3710991))
 * Updated CodeMirror to version 3.11
-* Allow plugin to be activated on individual sites on multisite ([#](http://wordpress.org/support/topic/dont-work-at-multisite))
+* Allow plugin to be activated on individual sites on multisite ([#](https://wordpress.org/support/topic/dont-work-at-multisite))
 * Slimmed down the description visual editor
-* Added icon for the new MP6 admin UI ([#](http://wordpress.org/support/topic/icon-disappears-with-mp6))
-* Strip PHP tags from the beginning and end of a snippet on save ([#](http://wordpress.org/support/topic/php-tags))
-* Changed to [MIT license](http://opensource.org/licenses/mit-license.php)
+* Added icon for the new MP6 admin UI ([#](https://wordpress.org/support/topic/icon-disappears-with-mp6))
+* Strip PHP tags from the beginning and end of a snippet on save ([#](https://wordpress.org/support/topic/php-tags))
+* Changed to [MIT license](https://opensource.org/licenses/mit-license.php)
 * Removed HTML, CSS and JavaScript CodeMirror modes that were messing things up
 * Change label in admin menu when editing a snippet
 * Improved admin styling
 * Made everything leaner, faster, and better
 
 = 1.6.1 (29 Dec 2012) =
-* Fixed a bug with permissions not being applied on install ([#](http://wordpress.org/support/topic/permissions-problem-after-install))
-* Fixed a bug in the uninstall method ([#](http://wordpress.org/support/topic/bug-in-delete-script))
+* Fixed a bug with permissions not being applied on install ([#](https://wordpress.org/support/topic/permissions-problem-after-install))
+* Fixed a bug in the uninstall method ([#](https://wordpress.org/support/topic/bug-in-delete-script))
 
 = 1.6 (22 Dec 2012) =
 * Updated code editor to use CodeMirror 3
@@ -555,17 +602,17 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 	* Added search capability to 'Manage Snippets' page
 	* Added views to easily filter activated, deactivated and recently activated snippets
 	* Added ID column to 'Manage Snippets' page
-	* Added sortable name and ID column on 'Manage Snippets' page ([#](http://wordpress.org/support/topic/plugin-code-snippets-suggestion-sort-by-snippet-name))
+	* Added sortable name and ID column on 'Manage Snippets' page ([#](https://wordpress.org/support/topic/plugin-code-snippets-suggestion-sort-by-snippet-name))
 * Added custom capabilities
 * Improved API
-* Added 'Export to PHP' feature ([#](http://wordpress.org/support/topic/plugin-code-snippets-suggestion-bulk-export-to-php))
-* Lengthened snippet name field to 64 characters ([#](http://wordpress.org/support/topic/plugin-code-snippets-snippet-title-limited-to-36-characters))
+* Added 'Export to PHP' feature ([#](https://wordpress.org/support/topic/plugin-code-snippets-suggestion-bulk-export-to-php))
+* Lengthened snippet name field to 64 characters ([#](https://wordpress.org/support/topic/plugin-code-snippets-snippet-title-limited-to-36-characters))
 * Added i18n
 
 = 1.4 (20 Aug 2012) =
 * Added interface to Network Dashboard
 * Updated uninstall to support multisite
-* Replaced EditArea with [CodeMirror](http://codemirror.net)
+* Replaced EditArea with [CodeMirror](https://codemirror.net)
 * Small improvements
 
 = 1.3.2 (17 Aug 2012) =
@@ -586,14 +633,17 @@ That's fantastic! Fork the [repository on GitHub](http://github.com/sheabunge/co
 * Data will now be cleaned up when plugin is deleted through WordPress admin
 
 = 1.1 (24 June 2012) =
-* Fixed a permissions bug with `DISALLOW_FILE_EDIT` being set to true ([#](http://wordpress.org/support/topic/plugin-code-snippets-cant-add-new))
+* Fixed a permissions bug with `DISALLOW_FILE_EDIT` being set to true ([#](https://wordpress.org/support/topic/plugin-code-snippets-cant-add-new))
 * Fixed a bug with the page title reading 'Add New Snippet' on the 'Edit Snippets' page
-* Fixed a bug not allowing the plugin to be Network Activated ([#](http://wordpress.org/support/topic/plugin-code-snippets-network-activate-does-not-create-snippets-tables))
+* Fixed a bug not allowing the plugin to be Network Activated ([#](https://wordpress.org/support/topic/plugin-code-snippets-network-activate-does-not-create-snippets-tables))
 
 = 1.0 (13 June 2012) =
 * Stable version released.
 
 == Upgrade Notice ==
+
+= 2.14.0 =
+Security update, last modified dates, and other improvements
 
 = 2.13.1 =
 Fixes for single-use snippets and French translation

@@ -12,12 +12,13 @@ function code_snippets_get_editor_atts( $override_atts, $json_encode ) {
 
 	// default attributes for the CodeMirror editor
 	$default_atts = array(
-		'mode' => 'text/x-php',
+		'mode' => 'php-snippet',
 		'matchBrackets' => true,
 		'extraKeys' => array( 'Alt-F' => 'findPersistent' ),
 		'gutters' => array( 'CodeMirror-lint-markers' ),
 		'lint' => true,
-		'viewportMargin' => 'Infinity'
+		'direction' => 'ltr',
+		'viewportMargin' => 'Infinity',
 	);
 
 	// add relevant saved setting values to the default attributes
@@ -98,7 +99,7 @@ function code_snippets_get_available_themes() {
 		return $themes;
 	}
 
-	$themes = array();
+	$themes = array( 'default' );
 	$themes_dir = plugin_dir_path( CODE_SNIPPETS_FILE ) . 'css/min/editor-themes/';
 	$theme_files = glob( $themes_dir . '*.css' );
 

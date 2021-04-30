@@ -7,7 +7,7 @@
 /**
  * @access private
  *
- * @param        $snippets
+ * @param array  $snippets
  * @param null   $multisite
  * @param string $dup_action
  *
@@ -17,7 +17,7 @@ function _code_snippets_save_imported_snippets( $snippets, $multisite = null, $d
 
 	/* Get a list of existing snippet names keyed to their IDs */
 	$existing_snippets = array();
-	if ( 'replace' == $dup_action || 'skip' === $dup_action ) {
+	if ( 'replace' === $dup_action || 'skip' === $dup_action ) {
 		$all_snippets = get_snippets( array(), $multisite );
 
 		foreach ( $all_snippets as $snippet ) {
@@ -31,6 +31,7 @@ function _code_snippets_save_imported_snippets( $snippets, $multisite = null, $d
 	$imported = array();
 
 	/* Loop through the provided snippets */
+	/** @var Code_Snippet $snippet */
 	foreach ( $snippets as $snippet ) {
 
 		/* Check if the snippet already exists */
@@ -44,8 +45,12 @@ function _code_snippets_save_imported_snippets( $snippets, $multisite = null, $d
 			}
 		}
 
+		/* Ensure that imported snippets are inactive */
+		$snippet->active = 0;
+
 		/* Save the snippet and increase the counter if successful */
-		if ( $snippet_id = save_snippet( $snippet ) ) {
+		$snippet_id = save_snippet( $snippet );
+		if ( $snippet_id ) {
 			$imported[] = $snippet_id;
 		}
 	}
@@ -53,7 +58,7 @@ function _code_snippets_save_imported_snippets( $snippets, $multisite = null, $d
 	return $imported;
 }
 
-/**
+/**f
  * Imports snippets from a JSON file
  *
  * @since 2.9.7
@@ -108,6 +113,7 @@ function import_snippets_xml( $file, $multisite = null, $dup_action = 'ignore' )
 		return false;
 	}
 
+	/** @phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase */
 	$dom = new DOMDocument( '1.0', get_bloginfo( 'charset' ) );
 	$dom->load( $file );
 
@@ -147,6 +153,8 @@ function import_snippets_xml( $file, $multisite = null, $dup_action = 'ignore' )
 	$imported = _code_snippets_save_imported_snippets( $snippets, $dup_action, $multisite );
 	do_action( 'code_snippets/import/xml', $file, $multisite );
 
+	/** @phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase */
+
 	return $imported;
 }
 
@@ -182,7 +190,7 @@ function code_snippets_prepare_export( $format, $ids, $table_name = '', $mime_ty
 	}
 
 	/* Build the export filename */
-	if ( 1 == count( $ids ) ) {
+	if ( 1 === count( $ids ) ) {
 		/* If there is only snippet to export, use its name instead of the site name */
 		$first_snippet = new Code_Snippet( $snippets[0] );
 		$title = strtolower( $first_snippet->name );
@@ -266,7 +274,7 @@ function export_snippets( $ids, $table_name = '' ) {
 
 	$data = array(
 		'generator'    => 'Code Snippets v' . code_snippets()->version,
-		'date_created' => date( 'Y-m-d H:i' ),
+		'date_created' => gmdate( 'Y-m-d H:i' ),
 		'snippets'     => $final_snippets,
 	);
 
