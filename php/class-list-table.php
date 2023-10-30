@@ -1,12 +1,18 @@
 <?php
-
 /**
  * Contains the class for handling the snippets table
  *
- * @package    Code_Snippets
+ * @package Code_Snippets
+ *
+ * phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
  */
 
-/* The WP_List_Table base class is not included by default, so we need to load it */
+namespace Code_Snippets;
+
+use WP_List_Table;
+use function Code_Snippets\Settings\get_setting;
+
+// The WP_List_Table base class is not included by default, so we need to load it.
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
@@ -17,161 +23,219 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
  * @since   1.5
  * @package Code_Snippets
  */
-class Code_Snippets_List_Table extends WP_List_Table {
+class List_Table extends WP_List_Table {
 
 	/**
-	 * true if the current screen is in the network admin
+	 * Whether the current screen is in the network admin
+	 *
 	 * @var bool
 	 */
 	public $is_network;
 
 	/**
 	 * A list of statuses (views)
-	 * @var array
+	 *
+	 * @var array<string>
 	 */
 	public $statuses = array( 'all', 'active', 'inactive', 'recently_activated' );
 
 	/**
+	 * Column name to use when ordering the snippets list.
+	 *
+	 * @var string
+	 */
+	protected $order_by;
+
+	/**
+	 * Direction to use when ordering the snippets list. Either 'asc' or 'desc'.
+	 *
+	 * @var string
+	 */
+	protected $order_dir;
+
+	/**
 	 * The constructor function for our class.
-	 * Adds hooks, initializes variables, setups class.
+	 * Registers hooks, initializes variables, setups class.
+	 *
+	 * @phpcs:disable WordPress.WP.GlobalVariablesOverride.Prohibited
 	 */
 	public function __construct() {
 		global $status, $page;
 		$this->is_network = is_network_admin();
 
-		/* Determine the status */
+		// Determine the status.
 		$status = apply_filters( 'code_snippets/list_table/default_view', 'all' );
-		if ( isset( $_REQUEST['status'] ) && in_array( $_REQUEST['status'], $this->statuses, true ) ) {
-			$status = $_REQUEST['status'];
+		if ( isset( $_REQUEST['status'] ) && in_array( sanitize_key( $_REQUEST['status'] ), $this->statuses, true ) ) {
+			$status = sanitize_key( $_REQUEST['status'] );
 		}
 
-		/* Add the search query to the URL */
+		// Add the search query to the URL.
 		if ( isset( $_REQUEST['s'] ) ) {
-			$_SERVER['REQUEST_URI'] = add_query_arg( 's', stripslashes( $_REQUEST['s'] ) );
+			$_SERVER['REQUEST_URI'] = add_query_arg( 's', sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) );
 		}
 
-		/* Add a snippets per page screen option */
+		// Add a snippets per page screen option.
 		$page = $this->get_pagenum();
 
-		add_screen_option( 'per_page', array(
-			'label'   => __( 'Snippets per page', 'code-snippets' ),
-			'default' => 999,
-			'option'  => 'snippets_per_page',
-		) );
+		add_screen_option(
+			'per_page',
+			array(
+				'label'   => __( 'Snippets per page', 'code-snippets' ),
+				'default' => 999,
+				'option'  => 'snippets_per_page',
+			)
+		);
 
 		add_filter( 'default_hidden_columns', array( $this, 'default_hidden_columns' ) );
 
-		/* Strip the result query arg from the URL */
+		// Strip the result query arg from the URL.
 		$_SERVER['REQUEST_URI'] = remove_query_arg( 'result' );
 
-		/* Add filters to format the snippet description in the same way the post content is formatted */
-		$filters = array( 'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop', 'shortcode_unautop', 'capital_P_dangit' );
-
+		// Add filters to format the snippet description in the same way the post content is formatted.
+		$filters = [ 'wptexturize', 'convert_smilies', 'convert_chars', 'wpautop', 'shortcode_unautop', 'capital_P_dangit', [ $this, 'wp_kses_desc' ] ];
 		foreach ( $filters as $filter ) {
 			add_filter( 'code_snippets/list_table/column_description', $filter );
 		}
 
-		/* Setup the class */
-		parent::__construct( array(
-			'ajax'     => true,
-			'plural'   => 'snippets',
-			'singular' => 'snippet',
-		) );
+		// Set up the class.
+		parent::__construct(
+			array(
+				'ajax'     => true,
+				'plural'   => 'snippets',
+				'singular' => 'snippet',
+			)
+		);
 	}
 
 	/**
-	 * Ensure certain columns are hidden by default for this screen.
+	 * Apply a more permissive version of wp_kses_post() to the snippet description.
 	 *
-	 * @param array $hidden
+	 * @param string $data Description content to filter.
 	 *
-	 * @return array
+	 * @return string Filtered description content with allowed HTML tags and attributes intact.
 	 */
-	public function default_hidden_columns( $hidden ) {
+	public function wp_kses_desc( string $data ): string {
+		$safe_style_filter = function ( $styles ) {
+			$styles[] = 'display';
+			return $styles;
+		};
+
+		add_filter( 'safe_style_css', $safe_style_filter );
+		$data = wp_kses_post( $data );
+		remove_filter( 'safe_style_css', $safe_style_filter );
+
+		return $data;
+	}
+
+	/**
+	 * Set the 'id' column as hidden by default.
+	 *
+	 * @param array<string> $hidden List of hidden columns.
+	 *
+	 * @return array<string> Modified list of hidden columns.
+	 */
+	public function default_hidden_columns( array $hidden ): array {
 		$hidden[] = 'id';
 		return $hidden;
 	}
 
 	/**
 	 * Set the 'name' column as the primary column.
+	 *
 	 * @return string
 	 */
-	protected function get_default_primary_column_name() {
+	protected function get_default_primary_column_name(): string {
 		return 'name';
 	}
 
 	/**
 	 * Define the output of all columns that have no callback function
 	 *
-	 * @param Code_Snippet $snippet     The snippet used for the current row
-	 * @param string       $column_name The name of the column being printed
+	 * @param Snippet $item        The snippet used for the current row.
+	 * @param string  $column_name The name of the column being printed.
 	 *
-	 * @return string The content of the column to output
+	 * @return string The content of the column to output.
 	 */
-	protected function column_default( $snippet, $column_name ) {
-
+	protected function column_default( $item, $column_name ): string {
 		switch ( $column_name ) {
 			case 'id':
-				return $snippet->id;
+				return $item->id;
+
 			case 'description':
-				return apply_filters( 'code_snippets/list_table/column_description', $snippet->desc );
+				return apply_filters( 'code_snippets/list_table/column_description', $item->desc );
+
+			case 'type':
+				$type = $item->type;
+				$url = add_query_arg( 'type', $type );
+
+				return sprintf(
+					'<a class="snippet-type-badge" href="%s" data-snippet-type="%s">%s</a>',
+					esc_url( $url ),
+					esc_attr( $type ),
+					esc_html( $type )
+				);
+
+			case 'date':
+				return $item->modified ? $item->format_modified() : '&#8212;';
+
 			default:
-				return apply_filters( "code_snippets/list_table/column_{$column_name}", '&#8212;', $snippet );
+				return apply_filters( "code_snippets/list_table/column_$column_name", '&#8212;', $item );
 		}
 	}
 
 	/**
 	 * Retrieve a URL to perform an action on a snippet
 	 *
-	 * @param string       $action  Name of action to perform.
-	 * @param Code_Snippet $snippet Snippet object.
-	 * @param bool         $escape  Whether to escape the generated URL for output.
+	 * @param string  $action  Name of action to produce a link for.
+	 * @param Snippet $snippet Snippet object to produce link for.
 	 *
-	 * @return string
+	 * @return string URL to perform action.
 	 */
-	public function get_action_link( $action, $snippet, $escape = true ) {
+	public function get_action_link( string $action, Snippet $snippet ): string {
 
-		// redirect actions to the network dashboard for shared network snippets
+		// Redirect actions to the network dashboard for shared network snippets.
 		$local_actions = array( 'activate', 'activate-shared', 'run-once', 'run-once-shared' );
 		$network_redirect = $snippet->shared_network && ! $this->is_network && ! in_array( $action, $local_actions, true );
 
-		// edit links go to a different menu
+		// Edit links go to a different menu.
 		if ( 'edit' === $action ) {
 			return code_snippets()->get_snippet_edit_url( $snippet->id, $network_redirect ? 'network' : 'self' );
 		}
 
-		$query_args = array( 'action' => $action, 'id' => $snippet->id );
+		$query_args = array(
+			'action' => $action,
+			'id'     => $snippet->id,
+			'scope'  => $snippet->scope,
+		);
 
 		$url = $network_redirect ?
 			add_query_arg( $query_args, code_snippets()->get_menu_url( 'manage', 'network' ) ) :
 			add_query_arg( $query_args );
 
-		// add a nonce to the URL for security purposes
-		$url = wp_nonce_url( $url, 'code_snippets_manage_snippet_' . $snippet->id );
-
-		return $escape ? esc_url( $url ) : $url;
+		// Add a nonce to the URL for security purposes.
+		return wp_nonce_url( $url, 'code_snippets_manage_snippet_' . $snippet->id );
 	}
 
 	/**
 	 * Build a list of action links for individual snippets
 	 *
-	 * @param Code_Snippet $snippet The current snippet
+	 * @param Snippet $snippet The current snippet.
 	 *
-	 * @return array The action links HTML
+	 * @return array<string, string> The action links HTML.
 	 */
-	private function get_snippet_action_links( Code_Snippet $snippet ) {
+	private function get_snippet_action_links( Snippet $snippet ): array {
 		$actions = array();
 
 		if ( ! $this->is_network && $snippet->network && ! $snippet->shared_network ) {
-			// display special links if on a subsite and dealing with a network-active snippet
-
+			// Display special links if on a subsite and dealing with a network-active snippet.
 			if ( $snippet->active ) {
 				$actions['network_active'] = esc_html__( 'Network Active', 'code-snippets' );
 			} else {
 				$actions['network_only'] = esc_html__( 'Network Only', 'code-snippets' );
 			}
 		} elseif ( ! $snippet->shared_network || current_user_can( code_snippets()->get_network_cap_name() ) ) {
-			// if the snippet is a shared network snippet, only display extra actions if the user has network permissions
 
+			// If the snippet is a shared network snippet, only display extra actions if the user has network permissions.
 			$simple_actions = array(
 				'edit'   => esc_html__( 'Edit', 'code-snippets' ),
 				'clone'  => esc_html__( 'Clone', 'code-snippets' ),
@@ -179,34 +243,35 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			);
 
 			foreach ( $simple_actions as $action => $label ) {
-				$actions[ $action ] = sprintf( '<a href="%s">%s</a>', $this->get_action_link( $action, $snippet ), $label );
+				$actions[ $action ] = sprintf( '<a href="%s">%s</a>', esc_url( $this->get_action_link( $action, $snippet ) ), $label );
 			}
 
 			$actions['delete'] = sprintf(
 				'<a href="%2$s" class="delete" onclick="%3$s">%1$s</a>',
 				esc_html__( 'Delete', 'code-snippets' ),
-				$this->get_action_link( 'delete', $snippet ),
-				esc_js( sprintf(
-					'return confirm("%s");',
-					esc_html__( 'You are about to permanently delete the selected item.', 'code-snippets' ) . "\n" .
-					esc_html__( "'Cancel' to stop, 'OK' to delete.", 'code-snippets' )
-				) )
+				esc_url( $this->get_action_link( 'delete', $snippet ) ),
+				esc_js(
+					sprintf(
+						'return confirm("%s");',
+						esc_html__( 'You are about to permanently delete the selected item.', 'code-snippets' ) . "\n" .
+						esc_html__( "'Cancel' to stop, 'OK' to delete.", 'code-snippets' )
+					)
+				)
 			);
 		}
 
-		return apply_filters( 'code_snippets/list_table/row_actions', $actions );
+		return apply_filters( 'code_snippets/list_table/row_actions', $actions, $snippet );
 	}
 
 	/**
 	 * Retrieve the code for a snippet activation switch
 	 *
-	 * @param Code_Snippet $snippet
+	 * @param Snippet $snippet Snippet object.
 	 *
-	 * @return string
+	 * @return string Output for activation switch.
 	 */
-	protected function get_activation_switch( $snippet ) {
-
-		if ( $this->is_network && $snippet->shared_network || ( ! $this->is_network && $snippet->network && ! $snippet ) ) {
+	protected function column_activate( Snippet $snippet ): string {
+		if ( $this->is_network && $snippet->shared_network || ( ! $this->is_network && $snippet->network && ! $snippet->shared_network ) ) {
 			return '';
 		}
 
@@ -227,40 +292,38 @@ class Code_Snippets_List_Table extends WP_List_Table {
 		}
 
 		return sprintf(
-			'<a class="%s" href="%s" title="%s"></a> ',
-			$class, $this->get_action_link( $action, $snippet ), esc_html( $label )
+			'<a class="%s" href="%s" title="%s">&nbsp;</a> ',
+			esc_attr( $class ),
+			esc_url( $this->get_action_link( $action, $snippet ) ),
+			esc_attr( $label )
 		);
 	}
 
 	/**
 	 * Build the content of the snippet name column
 	 *
-	 * @param Code_Snippet $snippet The snippet being used for the current row
+	 * @param Snippet $snippet The snippet being used for the current row.
 	 *
-	 * @return string The content of the column to output
+	 * @return string The content of the column to output.
 	 */
-	protected function column_name( $snippet ) {
-
-		/* translators: %d: snippet identifier */
-		$title = empty( $snippet->name ) ? sprintf( __( 'Untitled #%d', 'code-snippets' ), $snippet->id ) : $snippet->name;
-
+	protected function column_name( Snippet $snippet ): string {
 		$row_actions = $this->row_actions(
 			$this->get_snippet_action_links( $snippet ),
 			apply_filters( 'code_snippets/list_table/row_actions_always_visible', true )
 		);
 
-		$out = esc_html( $title );
+		$out = esc_html( $snippet->display_name );
 
 		if ( 'global' !== $snippet->scope ) {
 			$out .= ' <span class="dashicons dashicons-' . $snippet->scope_icon . '"></span>';
 		}
 
-		/* Add a link to the snippet if it isn't an unreadable network-only snippet */
+		// Add a link to the snippet if it isn't an unreadable network-only snippet.
 		if ( $this->is_network || ! $snippet->network || current_user_can( code_snippets()->get_network_cap_name() ) ) {
 
 			$out = sprintf(
 				'<a href="%s" class="snippet-name">%s</a>',
-				code_snippets()->get_snippet_edit_url( $snippet->id, $snippet->network ? 'network' : 'admin' ),
+				esc_attr( code_snippets()->get_snippet_edit_url( $snippet->id, $snippet->network ? 'network' : 'admin' ) ),
 				$out
 			);
 		}
@@ -269,52 +332,52 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			$out .= ' <span class="badge">' . esc_html__( 'Shared on Network', 'code-snippets' ) . '</span>';
 		}
 
-		/* Return the name contents */
+		// Return the name contents.
+		if ( code_snippets()->cloud_api->get_cloud_link( $snippet->id, 'local' ) ) {
+			// Make cloud icon grey to show it is from the cloud.
+			$out = '<span class="dashicons dashicons-cloud cloud-icon cloud-downloaded"></span>' . $out;
+		}
 
 		$out = apply_filters( 'code_snippets/list_table/column_name', $out, $snippet );
 
-		return $this->get_activation_switch( $snippet ) . $out . $row_actions;
+		return $out . $row_actions;
 	}
 
 	/**
 	 * Handles the checkbox column output.
 	 *
-	 * @param Code_Snippet $snippet The snippet being used for the current row
+	 * @param Snippet $item The snippet being used for the current row.
 	 *
-	 * @return string The column content to be printed
+	 * @return string The column content to be printed.
 	 */
-	protected function column_cb( $snippet ) {
-
+	protected function column_cb( $item ): string {
 		$out = sprintf(
-			'<input type="checkbox" name="%s[]" value="%s" />',
-			$snippet->shared_network ? 'shared_ids' : 'ids',
-			$snippet->id
+			'<input type="checkbox" name="%s[]" value="%s">',
+			$item->shared_network ? 'shared_ids' : 'ids',
+			$item->id
 		);
 
-		return apply_filters( 'code_snippets/list_table/column_cb', $out, $snippet );
+		return apply_filters( 'code_snippets/list_table/column_cb', $out, $item );
 	}
 
 	/**
 	 * Handles the tags column output.
 	 *
-	 * @param Code_Snippet $snippet The snippet being used for the current row
+	 * @param Snippet $snippet The snippet being used for the current row.
 	 *
-	 * @return string The column output
-	 * @since 2.0
-	 *
+	 * @return string The column output.
 	 */
-	protected function column_tags( $snippet ) {
-
-		/* Return now if there are no tags */
+	protected function column_tags( Snippet $snippet ): string {
 		if ( empty( $snippet->tags ) ) {
 			return '';
 		}
 
 		$out = array();
 
-		/* Loop through the tags and create a link for each one */
+		// Loop through the tags and create a link for each one.
 		foreach ( $snippet->tags as $tag ) {
-			$out[] = sprintf( '<a href="%s">%s</a>',
+			$out[] = sprintf(
+				'<a href="%s">%s</a>',
 				esc_url( add_query_arg( 'tag', esc_attr( $tag ) ) ),
 				esc_html( $tag )
 			);
@@ -326,68 +389,41 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Handles the priority column output.
 	 *
-	 * @param Code_Snippet $snippet
+	 * @param Snippet $snippet The snippet being used for the current row.
 	 *
-	 * @return string
+	 * @return string The column output.
 	 */
-	protected function column_priority( $snippet ) {
-
+	protected function column_priority( Snippet $snippet ): string {
 		return sprintf( '<input type="number" class="snippet-priority" value="%d" step="1" disabled>', $snippet->priority );
-	}
-
-	/**
-	 * Handles the post date column output.
-	 *
-	 * @param Code_Snippet $snippet The current code snippet object.
-	 *
-	 * @return string
-	 *
-	 * @since 2.14.0
-	 */
-	public function column_date( $snippet ) {
-
-		if ( ! $snippet->modified ) {
-			return '&#8212;';
-		}
-
-		$time_diff = time() - $snippet->modified_timestamp;
-		$local_time = $snippet->modified_local;
-
-		if ( $time_diff >= 0 && $time_diff < YEAR_IN_SECONDS ) {
-			/* translators: %s: Human-readable time difference. */
-			$human_time = sprintf( __( '%s ago', 'code-snippets' ), human_time_diff( $snippet->modified_timestamp ) );
-		} else {
-			$human_time = $local_time->format( __( 'Y/m/d', 'code-snippets' ) );
-		}
-
-		/* translators: 1: date format, 2: time format */
-		$date_format = _x( '%1$s \a\t %2$s', 'date and time format', 'code-snippets' );
-		$date_format = sprintf( $date_format, get_option( 'date_format' ), get_option( 'time_format' ) );
-
-		return sprintf( '<span title="%s">%s</span>', $local_time->format( $date_format ), $human_time );
 	}
 
 	/**
 	 * Define the column headers for the table
 	 *
-	 * @return array The column headers, ID paired with label
+	 * @return array<string, string> The column headers, ID paired with label
 	 */
-	public function get_columns() {
+	public function get_columns(): array {
 		$columns = array(
 			'cb'          => '<input type="checkbox">',
+			'activate'    => '',
 			'name'        => __( 'Name', 'code-snippets' ),
-			'id'          => __( 'ID', 'code-snippets' ),
+			'type'        => __( 'Type', 'code-snippets' ),
 			'description' => __( 'Description', 'code-snippets' ),
 			'tags'        => __( 'Tags', 'code-snippets' ),
 			'date'        => __( 'Modified', 'code-snippets' ),
 			'priority'    => __( 'Priority', 'code-snippets' ),
+			'id'          => __( 'ID', 'code-snippets' ),
 		);
 
-		if ( ! code_snippets_get_setting( 'general', 'enable_description' ) ) {
+		if ( isset( $_GET['type'] ) && 'all' !== $_GET['type'] ) {
+			unset( $columns['type'] );
+		}
+
+		if ( ! get_setting( 'general', 'enable_description' ) ) {
 			unset( $columns['description'] );
 		}
 
-		if ( ! code_snippets_get_setting( 'general', 'enable_tags' ) ) {
+		if ( ! get_setting( 'general', 'enable_tags' ) ) {
 			unset( $columns['tags'] );
 		}
 
@@ -402,16 +438,16 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	 *
 	 * The second format will make the initial sorting order be descending.
 	 *
-	 * @return array The IDs of the columns that can be sorted
+	 * @return array<string, string|array<string|bool>> The IDs of the columns that can be sorted
 	 */
-	public function get_sortable_columns() {
-
-		$sortable_columns = array(
-			'id'       => array( 'id', true ),
+	public function get_sortable_columns(): array {
+		$sortable_columns = [
+			'id'       => [ 'id', true ],
 			'name'     => 'name',
-			'date'     => array( 'modified', true ),
-			'priority' => array( 'priority', true ),
-		);
+			'type'     => [ 'type', true ],
+			'date'     => [ 'modified', true ],
+			'priority' => [ 'priority', true ],
+		];
 
 		return apply_filters( 'code_snippets/list_table/sortable_columns', $sortable_columns );
 	}
@@ -419,17 +455,17 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Define the bulk actions to include in the drop-down menus
 	 *
-	 * @return array An array of menu items with the ID paired to the label
+	 * @return array<string, string> An array of menu items with the ID paired to the label
 	 */
-	public function get_bulk_actions() {
-		$actions = array(
+	public function get_bulk_actions(): array {
+		$actions = [
 			'activate-selected'   => $this->is_network ? __( 'Network Activate', 'code-snippets' ) : __( 'Activate', 'code-snippets' ),
 			'deactivate-selected' => $this->is_network ? __( 'Network Deactivate', 'code-snippets' ) : __( 'Deactivate', 'code-snippets' ),
 			'clone-selected'      => __( 'Clone', 'code-snippets' ),
-			'download-selected'   => __( 'Download', 'code-snippets' ),
+			'download-selected'   => __( 'Export Code', 'code-snippets' ),
 			'export-selected'     => __( 'Export', 'code-snippets' ),
 			'delete-selected'     => __( 'Delete', 'code-snippets' ),
-		);
+		];
 
 		return apply_filters( 'code_snippets/list_table/bulk_actions', $actions );
 	}
@@ -439,9 +475,9 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	 *
 	 * We override this in order to add 'snippets' as a class for custom styling
 	 *
-	 * @return array The classes to include on the table element
+	 * @return array<string> The classes to include on the table element
 	 */
-	public function get_table_classes() {
+	public function get_table_classes(): array {
 		$classes = array( 'widefat', $this->_args['plural'] );
 
 		return apply_filters( 'code_snippets/list_table/table_classes', $classes );
@@ -452,73 +488,87 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	 *
 	 * Example: active, inactive, recently active
 	 *
-	 * @return array A list of the view labels linked to the view
+	 * @return array<string, string> A list of the view labels linked to the view
 	 */
-	public function get_views() {
+	public function get_views(): array {
 		global $totals, $status;
-		$status_links = array();
+		$status_links = parent::get_views();
 
-		/* Loop through the view counts */
+		// Loop through the view counts.
 		foreach ( $totals as $type => $count ) {
+			$labels = [];
 
-			/* Don't show the view if there is no count */
 			if ( ! $count ) {
 				continue;
 			}
 
-			/* Define the labels for each view */
-			$labels = array(
-
-				/* translators: %s: total number of snippets */
-				'all'                => _n( 'All <span class="count">(%s)</span>', 'All <span class="count">(%s)</span>', $count, 'code-snippets' ),
-
-				/* translators: %s: total number of active snippets */
-				'active'             => _n( 'Active <span class="count">(%s)</span>', 'Active <span class="count">(%s)</span>', $count, 'code-snippets' ),
-
-				/* translators: %s: total number of inactive snippets */
-				'inactive'           => _n( 'Inactive <span class="count">(%s)</span>', 'Inactive <span class="count">(%s)</span>', $count, 'code-snippets' ),
-
-				/* translators: %s: total number of recently activated snippets */
-				'recently_activated' => _n( 'Recently Active <span class="count">(%s)</span>', 'Recently Active <span class="count">(%s)</span>', $count, 'code-snippets' ),
+			// translators: %s: total number of snippets.
+			$labels['all'] = _n(
+				'All <span class="count">(%s)</span>',
+				'All <span class="count">(%s)</span>',
+				$count,
+				'code-snippets'
 			);
 
-			/* The page URL with the status parameter */
+			// translators: %s: total number of active snippets.
+			$labels['active'] = _n(
+				'Active <span class="count">(%s)</span>',
+				'Active <span class="count">(%s)</span>',
+				$count,
+				'code-snippets'
+			);
+
+			// translators: %s: total number of inactive snippets.
+			$labels['inactive'] = _n(
+				'Inactive <span class="count">(%s)</span>',
+				'Inactive <span class="count">(%s)</span>',
+				$count,
+				'code-snippets'
+			);
+
+			// translators: %s: total number of recently activated snippets.
+			$labels['recently_activated'] = _n(
+				'Recently Active <span class="count">(%s)</span>',
+				'Recently Active <span class="count">(%s)</span>',
+				$count,
+				'code-snippets'
+			);
+
+			// The page URL with the status parameter.
 			$url = esc_url( add_query_arg( 'status', $type ) );
 
-			/* Add a class if this view is currently being viewed */
+			// Add a class if this view is currently being viewed.
 			$class = $type === $status ? ' class="current"' : '';
 
-			/* Add the view count to the label */
+			// Add the view count to the label.
 			$text = sprintf( $labels[ $type ], number_format_i18n( $count ) );
 
-			/* Construct the link */
 			$status_links[ $type ] = sprintf( '<a href="%s"%s>%s</a>', $url, $class, $text );
 		}
-
-		/* Filter and return the list of views */
 
 		return apply_filters( 'code_snippets/list_table/views', $status_links );
 	}
 
 	/**
 	 * Gets the tags of the snippets currently being viewed in the table
+	 *
 	 * @since 2.0
 	 */
 	public function get_current_tags() {
 		global $snippets, $status;
 
-		/* If we're not viewing a snippets table, get all used tags instead */
+		// If we're not viewing a snippets table, get all used tags instead.
 		if ( ! isset( $snippets, $status ) ) {
 			$tags = get_all_snippet_tags();
 		} else {
 			$tags = array();
 
-			/* Merge all tags into a single array */
+			// Merge all tags into a single array.
 			foreach ( $snippets[ $status ] as $snippet ) {
 				$tags = array_merge( $snippet->tags, $tags );
 			}
 
-			/* Remove duplicate tags */
+			// Remove duplicate tags.
 			$tags = array_unique( $tags );
 		}
 
@@ -530,33 +580,40 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Add filters and extra actions above and below the table
 	 *
-	 * @param string $which Are the actions displayed on the table top or bottom
+	 * @param string $which Whether the actions are displayed on the before (true) or after (false) the table.
 	 */
 	public function extra_tablenav( $which ) {
+		/**
+		 * Status global.
+		 *
+		 * @var string $status
+		 */
 		global $status;
 
 		if ( 'top' === $which ) {
 
-			/* Tags dropdown filter */
+			// Tags dropdown filter.
 			$tags = $this->get_current_tags();
 
 			if ( count( $tags ) ) {
-				$query = isset( $_GET['tag'] ) ? $_GET['tag'] : '';
+				$query = isset( $_GET['tag'] ) ? sanitize_text_field( wp_unslash( $_GET['tag'] ) ) : '';
 
 				echo '<div class="alignleft actions">';
 				echo '<select name="tag">';
 
-				printf( "<option %s value=''>%s</option>\n",
+				printf(
+					"<option %s value=''>%s</option>\n",
 					selected( $query, '', false ),
-					__( 'Show all tags', 'code-snippets' )
+					esc_html__( 'Show all tags', 'code-snippets' )
 				);
 
 				foreach ( $tags as $tag ) {
 
-					printf( "<option %s value='%s'>%s</option>\n",
+					printf(
+						"<option %s value='%s'>%s</option>\n",
 						selected( $query, $tag, false ),
 						esc_attr( $tag ),
-						$tag
+						esc_html( $tag )
 					);
 				}
 
@@ -582,10 +639,9 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	 * Output form fields needed to preserve important
 	 * query vars over form submissions
 	 *
-	 * @param string $context In what context are the fields being outputted?
+	 * @param string $context The context in which the fields are being outputted.
 	 */
-	public function required_form_fields( $context = 'main' ) {
-
+	public static function required_form_fields( string $context = 'main' ) {
 		$vars = apply_filters(
 			'code_snippets/list_table/required_form_fields',
 			array( 'page', 's', 'status', 'paged', 'tag' ),
@@ -593,14 +649,15 @@ class Code_Snippets_List_Table extends WP_List_Table {
 		);
 
 		if ( 'search_box' === $context ) {
-			/* Remove the 's' var if we're doing this for the search box */
+			// Remove the 's' var if we're doing this for the search box.
 			$vars = array_diff( $vars, array( 's' ) );
 		}
 
 		foreach ( $vars as $var ) {
 			if ( ! empty( $_REQUEST[ $var ] ) ) {
-				printf( '<input type="hidden" name="%s" value="%s" />', esc_attr( $var ), esc_attr( $_REQUEST[ $var ] ) );
-				print "\n";
+				$value = sanitize_text_field( wp_unslash( $_REQUEST[ $var ] ) );
+				printf( '<input type="hidden" name="%s" value="%s" />', esc_attr( $var ), esc_attr( $value ) );
+				echo "\n";
 			}
 		}
 
@@ -608,18 +665,15 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Perform an action on a single snippet
+	 * Perform an action on a single snippet.
 	 *
-	 * @param int    $id
-	 * @param string $action
+	 * @param int    $id     Snippet ID.
+	 * @param string $action Action to perform.
+	 * @param string $scope  Snippet scope; used for cache busting CSS and JS snippets.
 	 *
 	 * @return bool|string Result of performing action
-	 * @uses activate_snippet() to activate snippets
-	 * @uses deactivate_snippet() to deactivate snippets
-	 * @uses delete_snippet() to delete snippets
-	 *
 	 */
-	private function perform_action( $id, $action ) {
+	private function perform_action( int $id, string $action, string $scope = '' ) {
 
 		switch ( $action ) {
 
@@ -645,6 +699,7 @@ class Code_Snippets_List_Table extends WP_List_Table {
 				if ( ! in_array( $id, $active_shared_snippets, true ) ) {
 					$active_shared_snippets[] = $id;
 					update_option( 'active_shared_network_snippets', $active_shared_snippets );
+					clean_active_snippets_cache( code_snippets()->db->ms_table );
 				}
 
 				return 'activated';
@@ -652,6 +707,7 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			case 'deactivate-shared':
 				$active_shared_snippets = get_option( 'active_shared_network_snippets', array() );
 				update_option( 'active_shared_network_snippets', array_diff( $active_shared_snippets, array( $id ) ) );
+				clean_active_snippets_cache( code_snippets()->db->ms_table );
 				return 'deactivated';
 
 			case 'clone':
@@ -663,11 +719,13 @@ class Code_Snippets_List_Table extends WP_List_Table {
 				return 'deleted';
 
 			case 'export':
-				export_snippets( array( $id ) );
+				$export = new Export_Attachment( $id );
+				$export->download_snippets_json();
 				break;
 
 			case 'download':
-				download_snippets( array( $id ) );
+				$export = new Export_Attachment( $id );
+				$export->download_snippets_code();
 				break;
 		}
 
@@ -677,12 +735,11 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Processes actions requested by the user.
 	 *
-	 * @uses wp_redirect() to pass the results to the current page
-	 * @uses add_query_arg() to append the results to the current URI
+	 * @return void
 	 */
 	public function process_requested_actions() {
 
-		/* Clear the recent snippets list if requested to do so */
+		// Clear the recent snippets list if requested to do so.
 		if ( isset( $_POST['clear-recent-list'] ) ) {
 			check_admin_referer( 'bulk-' . $this->_args['plural'] );
 
@@ -693,35 +750,36 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			}
 		}
 
-		/* Check if there are any single snippet actions to perform */
+		// Check if there are any single snippet actions to perform.
 		if ( isset( $_GET['action'], $_GET['id'] ) ) {
 			$id = absint( $_GET['id'] );
+			$scope = isset( $_GET['scope'] ) ? sanitize_key( wp_unslash( $_GET['scope'] ) ) : '';
 
-			/* Verify they were sent from a trusted source */
+			// Verify they were sent from a trusted source.
 			$nonce_action = 'code_snippets_manage_snippet_' . $id;
-			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], $nonce_action ) ) {
+			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), $nonce_action ) ) {
 				wp_nonce_ays( $nonce_action );
 			}
 
-			$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'action', 'id', '_wpnonce' ) );
+			$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'action', 'id', 'scope', '_wpnonce' ) );
 
-			/* If so, then perform the requested action and inform the user of the result */
-			$result = $this->perform_action( $id, sanitize_key( $_GET['action'] ) );
+			// If so, then perform the requested action and inform the user of the result.
+			$result = $this->perform_action( $id, sanitize_key( $_GET['action'] ), $scope );
 
 			if ( $result ) {
-				wp_redirect( esc_url_raw( add_query_arg( 'result', $result ) ) );
+				wp_safe_redirect( esc_url_raw( add_query_arg( 'result', $result ) ) );
 				exit;
 			}
 		}
 
-		/* Only continue from this point if there are bulk actions to process */
+		// Only continue from this point if there are bulk actions to process.
 		if ( ! isset( $_POST['ids'] ) && ! isset( $_POST['shared_ids'] ) ) {
 			return;
 		}
 
 		check_admin_referer( 'bulk-' . $this->_args['plural'] );
 
-		$ids = isset( $_POST['ids'] ) ? $_POST['ids'] : array();
+		$ids = isset( $_POST['ids'] ) ? array_map( 'intval', $_POST['ids'] ) : array();
 		$_SERVER['REQUEST_URI'] = remove_query_arg( 'action' );
 
 		switch ( $this->current_action() ) {
@@ -729,45 +787,48 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			case 'activate-selected':
 				activate_snippets( $ids );
 
-				/* Process the shared network snippets */
+				// Process the shared network snippets.
 				if ( isset( $_POST['shared_ids'] ) && is_multisite() && ! $this->is_network ) {
 					$active_shared_snippets = get_option( 'active_shared_network_snippets', array() );
 
-					foreach ( $_POST['shared_ids'] as $id ) {
+					foreach ( array_map( 'intval', $_POST['shared_ids'] ) as $id ) {
 						if ( ! in_array( $id, $active_shared_snippets, true ) ) {
 							$active_shared_snippets[] = $id;
 						}
 					}
 
 					update_option( 'active_shared_network_snippets', $active_shared_snippets );
+					clean_active_snippets_cache( code_snippets()->db->ms_table );
 				}
 
 				$result = 'activated-multi';
 				break;
 
 			case 'deactivate-selected':
-
 				foreach ( $ids as $id ) {
 					deactivate_snippet( $id, $this->is_network );
 				}
 
-				/* Process the shared network snippets */
+				// Process the shared network snippets.
 				if ( isset( $_POST['shared_ids'] ) && is_multisite() && ! $this->is_network ) {
 					$active_shared_snippets = get_option( 'active_shared_network_snippets', array() );
 					$active_shared_snippets = ( '' === $active_shared_snippets ) ? array() : $active_shared_snippets;
-					$active_shared_snippets = array_diff( $active_shared_snippets, $_POST['shared_ids'] );
+					$active_shared_snippets = array_diff( $active_shared_snippets, array_map( 'intval', $_POST['shared_ids'] ) );
 					update_option( 'active_shared_network_snippets', $active_shared_snippets );
+					clean_active_snippets_cache( code_snippets()->db->ms_table );
 				}
 
 				$result = 'deactivated-multi';
 				break;
 
 			case 'export-selected':
-				export_snippets( $ids );
+				$export = new Export_Attachment( $ids );
+				$export->download_snippets_json();
 				break;
 
 			case 'download-selected':
-				download_snippets( $ids );
+				$export = new Export_Attachment( $ids );
+				$export->download_snippets_code();
 				break;
 
 			case 'clone-selected':
@@ -784,46 +845,57 @@ class Code_Snippets_List_Table extends WP_List_Table {
 		}
 
 		if ( isset( $result ) ) {
-			wp_redirect( esc_url_raw( add_query_arg( 'result', $result ) ) );
+			wp_safe_redirect( esc_url_raw( add_query_arg( 'result', $result ) ) );
 			exit;
 		}
 	}
 
 	/**
-	 * Message to display if no snippets are found
+	 * Message to display if no snippets are found.
+	 *
+	 * @return void
 	 */
 	public function no_items() {
 
-		if ( isset( $GLOBALS['s'] ) || isset( $_GET['tag'] ) ) {
+		if ( ! empty( $GLOBALS['s'] ) || ! empty( $_GET['tag'] ) ) {
 			esc_html_e( 'No snippets were found matching the current search query. Please enter a new query or use the "Clear Filters" button above.', 'code-snippets' );
 
 		} else {
-			esc_html_e( "It looks like you don't have any snippets.", 'code-snippets' );
+			$add_url = code_snippets()->get_menu_url( 'add' );
+
+			if ( empty( $_GET['type'] ) ) {
+				esc_html_e( "It looks like you don't have any snippets.", 'code-snippets' );
+			} else {
+				esc_html_e( "It looks like you don't have any snippets of this type.", 'code-snippets' );
+				$add_url = add_query_arg( 'type', sanitize_key( wp_unslash( $_GET['type'] ) ), $add_url );
+			}
+
 			printf(
 				' <a href="%s">%s</a>',
-				esc_url( code_snippets()->get_menu_url( 'add' ) ),
+				esc_url( $add_url ),
 				esc_html__( 'Perhaps you would like to add a new one?', 'code-snippets' )
 			);
 		}
 	}
 
 	/**
+	 * Fetch all shared network snippets for the current site.
 	 *
+	 * @return void
 	 */
 	private function fetch_shared_network_snippets() {
-		/** @var wpdb $wpdb */
-		global $snippets, $wpdb;
-		$db = code_snippets()->db;
+		global $snippets;
+		$ids = get_site_option( 'shared_network_snippets' );
 
-		if ( ! is_multisite() || ! $ids = get_site_option( 'shared_network_snippets', false ) ) {
+		if ( ! is_multisite() || ! $ids ) {
 			return;
 		}
 
 		if ( $this->is_network ) {
 			$limit = count( $snippets['all'] );
 
-			/** @var Code_Snippet $snippet */
 			for ( $i = 0; $i < $limit; $i++ ) {
+				/** Snippet @var Snippet $snippet */
 				$snippet = &$snippets['all'][ $i ];
 
 				if ( in_array( $snippet->id, $ids, true ) ) {
@@ -833,23 +905,13 @@ class Code_Snippets_List_Table extends WP_List_Table {
 				}
 			}
 		} else {
-
 			$active_shared_snippets = get_option( 'active_shared_network_snippets', array() );
+			$shared_snippets = get_snippets( $ids, true );
 
-			$sql = sprintf( "SELECT * FROM {$db->ms_table} WHERE id IN (%s)",
-				implode( ',', array_fill( 0, count( $ids ), '%d' ) )
-			);
-
-			$shared_snippets = $wpdb->get_results( $wpdb->prepare( $sql, $ids ), ARRAY_A );
-
-			foreach ( $shared_snippets as $index => $snippet ) {
-				$snippet = new Code_Snippet( $snippet );
-				$snippet->network = true;
+			foreach ( $shared_snippets as $snippet ) {
 				$snippet->shared_network = true;
 				$snippet->tags = array_merge( $snippet->tags, array( 'shared on network' ) );
 				$snippet->active = in_array( $snippet->id, $active_shared_snippets, true );
-
-				$shared_snippets[ $index ] = $snippet;
 			}
 
 			$snippets['all'] = array_merge( $snippets['all'], $shared_snippets );
@@ -859,56 +921,74 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Prepares the items to later display in the table.
 	 * Should run before any headers are sent.
+	 *
+	 * @phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+	 *
+	 * @return void
 	 */
 	public function prepare_items() {
+		/**
+		 * Global variables.
+		 *
+		 * @var string                   $status   Current status view.
+		 * @var array<string, Snippet[]> $snippets List of snippets for views.
+		 * @var array<string, integer>   $totals   List of total items for views.
+		 * @var string                   $s        Current search term.
+		 */
 		global $status, $snippets, $totals, $s;
 
 		wp_reset_vars( array( 'orderby', 'order', 's' ) );
 
-		/* First, lets process the submitted actions */
-		$this->process_requested_actions();
-
-		/* Initialize the $snippets array */
-		$snippets = array_fill_keys( $this->statuses, array() );
-
-		/* Fetch all snippets */
-		$snippets['all'] = apply_filters( 'code_snippets/list_table/get_snippets', get_snippets( array() ) );
-		$this->fetch_shared_network_snippets();
-
-		/* Redirect POST'ed tag filter to GET */
-		if ( isset( $_POST['tag'] ) ) {
-			$location = empty( $_POST['tag'] ) ? remove_query_arg( 'tag' ) : add_query_arg( 'tag', $_POST['tag'] );
-			wp_redirect( esc_url_raw( $location ) );
+		// Redirect tag filter from POST to GET.
+		if ( isset( $_POST['filter_action'] ) ) {
+			$location = empty( $_POST['tag'] ) ?
+				remove_query_arg( 'tag' ) :
+				add_query_arg( 'tag', sanitize_text_field( wp_unslash( $_POST['tag'] ) ) );
+			wp_safe_redirect( esc_url_raw( $location ) );
 			exit;
 		}
 
-		/* Add scope tags */
-		if ( code_snippets_get_setting( 'general', 'snippet_scope_enabled' ) ) {
-			foreach ( $snippets['all'] as $snippet ) {
+		$this->process_requested_actions();
+		$snippets = array_fill_keys( $this->statuses, array() );
 
-				if ( 'global' !== $snippet->scope ) {
-					$snippet->tags = array_merge( $snippet->tags, array( $snippet->scope ) );
+		$snippets['all'] = apply_filters( 'code_snippets/list_table/get_snippets', get_snippets() );
+		$this->fetch_shared_network_snippets();
+
+		// Filter snippets by type.
+		$type = sanitize_key( wp_unslash( $_GET['type'] ?? '' ) );
+
+		if ( $type && 'all' !== $type ) {
+			$snippets['all'] = array_filter(
+				$snippets['all'],
+				function ( Snippet $snippet ) use ( $type ) {
+					return $type === $snippet->type;
 				}
+			);
+		}
+
+		// Add scope tags.
+		foreach ( $snippets['all'] as $snippet ) {
+			if ( 'global' !== $snippet->scope ) {
+				$snippet->add_tag( $snippet->scope );
 			}
 		}
 
-		/* Filter snippets by tag */
+		// Filter snippets by tag.
 		if ( ! empty( $_GET['tag'] ) ) {
 			$snippets['all'] = array_filter( $snippets['all'], array( $this, 'tags_filter_callback' ) );
 		}
 
-		/* Filter snippets based on search query */
+		// Filter snippets based on search query.
 		if ( $s ) {
 			$snippets['all'] = array_filter( $snippets['all'], array( $this, 'search_by_line_callback' ) );
 		}
 
-		/* Clear recently activated snippets older than a week */
+		// Clear recently activated snippets older than a week.
 		$recently_activated = $this->is_network ?
 			get_site_option( 'recently_activated_snippets', array() ) :
 			get_option( 'recently_activated_snippets', array() );
 
 		foreach ( $recently_activated as $key => $time ) {
-
 			if ( $time + WEEK_IN_SECONDS < time() ) {
 				unset( $recently_activated[ $key ] );
 			}
@@ -918,7 +998,11 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			update_site_option( 'recently_activated_snippets', $recently_activated ) :
 			update_option( 'recently_activated_snippets', $recently_activated );
 
-		/* Filter snippets into individual sections */
+		/**
+		 * Filter snippets into individual sections
+		 *
+		 * @var Snippet $snippet
+		 */
 		foreach ( $snippets['all'] as $snippet ) {
 
 			if ( $snippet->active ) {
@@ -926,28 +1010,28 @@ class Code_Snippets_List_Table extends WP_List_Table {
 			} else {
 				$snippets['inactive'][] = $snippet;
 
-				/* Was the snippet recently deactivated? */
+				// Was the snippet recently deactivated?
 				if ( isset( $recently_activated[ $snippet->id ] ) ) {
 					$snippets['recently_activated'][] = $snippet;
 				}
 			}
 		}
 
-		/* Count the totals for each section */
+		// Count the totals for each section.
 		$totals = array();
 		foreach ( $snippets as $type => $list ) {
 			$totals[ $type ] = count( $list );
 		}
 
-		/* If the current status is empty, default tp all */
+		// If the current status is empty, default to all.
 		if ( empty( $snippets[ $status ] ) ) {
 			$status = 'all';
 		}
 
-		/* Get the current data */
+		// Get the current data.
 		$data = $snippets[ $status ];
 
-		/* Decide how many records per page to show by getting the user's setting in the Screen Options panel */
+		// Decide how many records per page to show by getting the user's setting in the Screen Options panel.
 		$sort_by = $this->screen->get_option( 'per_page', 'option' );
 		$per_page = get_user_meta( get_current_user_id(), $sort_by, true );
 
@@ -957,107 +1041,122 @@ class Code_Snippets_List_Table extends WP_List_Table {
 
 		$per_page = (int) $per_page;
 
+		$this->set_order_vars();
 		usort( $data, array( $this, 'usort_reorder_callback' ) );
 
-		/* Determine what page the user is currently looking at */
+		// Determine what page the user is currently looking at.
 		$current_page = $this->get_pagenum();
 
-		/* Check how many items are in the data array */
+		// Check how many items are in the data array.
 		$total_items = count( $data );
 
-		/* The WP_List_Table class does not handle pagination for us, so we need
-		   to ensure that the data is trimmed to only the current page. */
+		// The WP_List_Table class does not handle pagination for us, so we need to ensure that the data is trimmed to only the current page.
 		$data = array_slice( $data, ( ( $current_page - 1 ) * $per_page ), $per_page );
 
-		/* Now we can add our *sorted* data to the items property,
-		   where it can be used by the rest of the class. */
+		// Now we can add our *sorted* data to the 'items' property, where it can be used by the rest of the class.
 		$this->items = $data;
 
-		/* We register our pagination options and calculations */
-		$this->set_pagination_args( array(
-			'total_items' => $total_items, // Calculate the total number of items
-			'per_page'    => $per_page, // Determine how many items to show on a page
-			'total_pages' => ceil( $total_items / $per_page ), // Calculate the total number of pages
-		) );
+		// We register our pagination options and calculations.
+		$this->set_pagination_args(
+			[
+				'total_items' => $total_items, // Calculate the total number of items.
+				'per_page'    => $per_page, // Determine how many items to show on a page.
+				'total_pages' => ceil( $total_items / $per_page ), // Calculate the total number of pages.
+			]
+		);
 	}
 
 	/**
-	 * Determine the sort ordering for two pieces of data
+	 * Determine the sort ordering for two pieces of data.
 	 *
-	 * @param string $field name of the field that the data belongs to
-	 * @param string $a_data
-	 * @param string $b_data
+	 * @param mixed $a_data First piece of data.
+	 * @param mixed $b_data Second piece of data.
 	 *
-	 * @return int
+	 * @return int Returns -1 if $a_data is less than $b_data; 0 if they are equal; 1 otherwise
 	 * @ignore
 	 */
-	private function get_sort_direction( $field, $a_data, $b_data ) {
+	private function get_sort_direction( $a_data, $b_data ) {
 
-		// if the data is numeric, then calculate the ordering directly
-		if ( is_numeric( $a_data ) ) {
+		// If the data is numeric, then calculate the ordering directly.
+		if ( is_numeric( $a_data ) && is_numeric( $b_data ) ) {
 			return $a_data - $b_data;
 		}
 
-		// if only one of the data points is empty, then place it before the one which is not
-		if ( '' === $a_data xor '' === $b_data ) {
-			return '' === $a_data ? 1 : -1;
+		// If only one of the data points is empty, then place it before the one which is not.
+		if ( empty( $a_data ) xor empty( $b_data ) ) {
+			return empty( $a_data ) ? 1 : -1;
 		}
 
-		// sort using the default string sort order if possible
-		if ( is_string( $a_data ) ) {
+		// Sort using the default string sort order if possible.
+		if ( is_string( $a_data ) && is_string( $b_data ) ) {
 			return strcasecmp( $a_data, $b_data );
 		}
 
-		// otherwise, use basic comparison operators
+		// Otherwise, use basic comparison operators.
 		return $a_data === $b_data ? 0 : ( $a_data < $b_data ? -1 : 1 );
+	}
+
+	/**
+	 * Set the $order_by and $order_dir class variables.
+	 */
+	private function set_order_vars() {
+		$order = Settings\get_setting( 'general', 'list_order' );
+
+		// set the order by based on the query variable, if set.
+		if ( ! empty( $_REQUEST['orderby'] ) ) {
+			$this->order_by = sanitize_key( wp_unslash( $_REQUEST['orderby'] ) );
+		} else {
+			// otherwise, fetch the order from the setting, ensuring it is valid.
+			$valid_fields = [ 'id', 'name', 'type', 'modified', 'priority' ];
+			$order_parts = explode( '-', $order, 2 );
+
+			$this->order_by = in_array( $order_parts[0], $valid_fields, true ) ? $order_parts[0] :
+				apply_filters( 'code_snippets/list_table/default_orderby', 'priority' );
+		}
+
+		// set the order dir based on the query variable, if set.
+		if ( ! empty( $_REQUEST['order'] ) ) {
+			$this->order_dir = sanitize_key( wp_unslash( $_REQUEST['order'] ) );
+		} elseif ( '-desc' === substr( $order, -5 ) ) {
+			$this->order_dir = 'desc';
+		} elseif ( '-asc' === substr( $order, -4 ) ) {
+			$this->order_dir = 'asc';
+		} else {
+			$this->order_dir = apply_filters( 'code_snippets/list_table/default_order', 'asc' );
+		}
 	}
 
 	/**
 	 * Callback for usort() used to sort snippets
 	 *
-	 * @param Code_Snippet $a The first snippet to compare
-	 * @param Code_Snippet $b The second snippet to compare
+	 * @param Snippet $a The first snippet to compare.
+	 * @param Snippet $b The second snippet to compare.
 	 *
-	 * @return int The sort order
+	 * @return int The sort order.
 	 * @ignore
 	 */
-	private function usort_reorder_callback( $a, $b ) {
-
-		// sort by ID by default
-		$orderby = (
-		! empty( $_REQUEST['orderby'] )
-			? $_REQUEST['orderby']
-			: apply_filters( 'code_snippets/list_table/default_orderby', 'priority' )
-		);
-
-		// sort ascending by default
-		$order = (
-		! empty( $_REQUEST['order'] )
-			? $_REQUEST['order']
-			: apply_filters( 'code_snippets/list_table/default_order', 'asc' )
-		);
-
-		$result = $this->get_sort_direction( $orderby, $a->$orderby, $b->$orderby );
+	private function usort_reorder_callback( Snippet $a, Snippet $b ) {
+		$orderby = $this->order_by;
+		$result = $this->get_sort_direction( $a->$orderby, $b->$orderby );
 
 		if ( 0 === $result && 'id' !== $orderby ) {
-			$result = $this->get_sort_direction( 'id', $a->id, $b->id );
+			$result = $this->get_sort_direction( $a->id, $b->id );
 		}
 
-		// apply the sort direction to the calculated order
-		return ( 'asc' === $order ) ? $result : -$result;
+		// Apply the sort direction to the calculated order.
+		return ( 'asc' === $this->order_dir ) ? $result : -$result;
 	}
 
 	/**
 	 * Callback for search function
 	 *
-	 * @param Code_Snippet $snippet The snippet being filtered
+	 * @param Snippet $snippet The snippet being filtered.
 	 *
 	 * @return bool The result of the filter
 	 * @ignore
 	 */
-	private function search_callback( $snippet ) {
+	private function search_callback( Snippet $snippet ): bool {
 		global $s;
-
 		$fields = array( 'name', 'desc', 'code', 'tags_list' );
 
 		foreach ( $fields as $field ) {
@@ -1071,12 +1170,12 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Callback for search function
 	 *
-	 * @param Code_Snippet $snippet The snippet being filtered
+	 * @param Snippet $snippet The snippet being filtered.
 	 *
 	 * @return bool The result of the filter
 	 * @ignore
 	 */
-	private function search_by_line_callback( $snippet ) {
+	private function search_by_line_callback( Snippet $snippet ): bool {
 		global $s;
 		static $line_num;
 
@@ -1100,15 +1199,17 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Callback for filtering snippets by tag
+	 * Callback for filtering snippets by tag.
 	 *
-	 * @param Code_Snippet $snippet The snippet being filtered
+	 * @param Snippet $snippet The snippet being filtered.
 	 *
-	 * @return bool The result of the filter
+	 * @return bool The result of the filter.
 	 * @ignore
 	 */
-	private function tags_filter_callback( $snippet ) {
-		$tags = explode( ',', $_GET['tag'] );
+	private function tags_filter_callback( Snippet $snippet ): bool {
+		$tags = isset( $_GET['tag'] ) ?
+			explode( ',', sanitize_text_field( wp_unslash( $_GET['tag'] ) ) ) :
+			array();
 
 		foreach ( $tags as $tag ) {
 			if ( in_array( $tag, $snippet->tags, true ) ) {
@@ -1121,41 +1222,46 @@ class Code_Snippets_List_Table extends WP_List_Table {
 
 	/**
 	 * Display a notice showing the current search terms
+	 *
 	 * @since 1.7
 	 */
 	public function search_notice() {
 		if ( ! empty( $_REQUEST['s'] ) || ! empty( $_GET['tag'] ) ) {
 
-			echo '<span class="subtitle">' . __( 'Search results', 'code-snippets' );
+			echo '<span class="subtitle">' . esc_html__( 'Search results', 'code-snippets' );
 
 			if ( ! empty( $_REQUEST['s'] ) ) {
-				$s = $_REQUEST['s'];
+				$s = sanitize_text_field( wp_unslash( $_REQUEST['s'] ) );
 
 				if ( preg_match( '/@line:(?P<line>\d+)/', $s, $matches ) ) {
 
-					/* translators: 1: search query, 2: line number */
-					echo sprintf( __( ' for &ldquo;%1$s&rdquo; on line %2$d', 'code-snippets' ),
+					// translators: 1: search query, 2: line number.
+					$text = __( ' for &ldquo;%1$s&rdquo; on line %2$d', 'code-snippets' );
+					printf(
+						esc_html( $text ),
 						esc_html( trim( str_replace( $matches[0], '', $s ) ) ),
-						$matches['line']
+						intval( $matches['line'] )
 					);
 
 				} else {
-					/* translators: %s: search query */
-					echo sprintf( __( ' for &ldquo;%s&rdquo;', 'code-snippets' ), esc_html( $s ) );
+					// translators: %s: search query.
+					echo esc_html( sprintf( __( ' for &ldquo;%s&rdquo;', 'code-snippets' ), $s ) );
 				}
 			}
 
 			if ( ! empty( $_GET['tag'] ) ) {
-				/* translators: %s: tag name */
-				echo sprintf( __( ' in tag &ldquo;%s&rdquo;', 'code-snippets' ), esc_html( $_GET['tag'] ) );
+				$tag = sanitize_text_field( wp_unslash( $_GET['tag'] ) );
+				// translators: %s: tag name.
+				echo esc_html( sprintf( __( ' in tag &ldquo;%s&rdquo;', 'code-snippets' ), $tag ) );
 			}
 
 			echo '</span>';
 
-			/* translators: 1: link URL, 2: link text */
-			printf( '&nbsp;<a class="button clear-filters" href="%s">%s</a>',
+			// translators: 1: link URL, 2: link text.
+			printf(
+				'&nbsp;<a class="button clear-filters" href="%s">%s</a>',
 				esc_url( remove_query_arg( array( 's', 'tag' ) ) ),
-				__( 'Clear Filters', 'code-snippets' )
+				esc_html__( 'Clear Filters', 'code-snippets' )
 			);
 		}
 	}
@@ -1163,37 +1269,38 @@ class Code_Snippets_List_Table extends WP_List_Table {
 	/**
 	 * Outputs content for a single row of the table
 	 *
-	 * @param Code_Snippet $snippet The snippet being used for the current row
+	 * @param Snippet $item The snippet being used for the current row.
 	 */
-	public function single_row( $snippet ) {
-		$row_class = ( $snippet->active ? 'active-snippet' : 'inactive-snippet' );
+	public function single_row( $item ) {
+		$status = $item->active ? 'active' : 'inactive';
 
-		if ( code_snippets_get_setting( 'general', 'snippet_scope_enabled' ) ) {
-			$row_class .= sprintf( ' %s-scope', $snippet->scope );
-		}
+		$row_class = "snippet $status-snippet $item->type-snippet $item->scope-scope";
 
-		if ( $snippet->shared_network ) {
+		if ( $item->shared_network ) {
 			$row_class .= ' shared-network-snippet';
 		}
 
-		printf( '<tr class="%s">', $row_class );
-		$this->single_row_columns( $snippet );
+		printf( '<tr class="%s" data-snippet-scope="%s">', esc_attr( $row_class ), esc_attr( $item->scope ) );
+		$this->single_row_columns( $item );
 		echo '</tr>';
 	}
 
 	/**
 	 * Clone a selection of snippets
 	 *
-	 * @param array $ids
+	 * @param array<integer> $ids List of snippet IDs.
 	 */
-	private function clone_snippets( $ids ) {
+	private function clone_snippets( array $ids ) {
 		$snippets = get_snippets( $ids, $this->is_network );
 
-		/** @var Code_Snippet $snippet */
 		foreach ( $snippets as $snippet ) {
-			// copy all data from the previous snippet aside from the ID and active status
+			// Copy all data from the previous snippet aside from the ID and active status.
 			$snippet->id = 0;
 			$snippet->active = false;
+
+			// translators: %s: snippet title.
+			$snippet->name = sprintf( __( '%s [CLONE]', 'code-snippets' ), $snippet->name );
+			$snippet = apply_filters( 'code_snippets/list_table/clone_snippet', $snippet );
 
 			save_snippet( $snippet );
 		}
