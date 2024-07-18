@@ -22,7 +22,7 @@ class Edit_Menu extends Admin_Menu {
 	/**
 	 * The snippet object currently being edited
 	 *
-	 * @var Snippet
+	 * @var Snippet|null
 	 * @see Edit_Menu::load_snippet_data()
 	 */
 	protected $snippet = null;
@@ -149,35 +149,34 @@ class Edit_Menu extends Admin_Menu {
 
 		enqueue_code_editor( $this->snippet->type );
 
-		$css_deps = [
-			'code-editor',
-			'wp-components',
-		];
-
-		$js_deps = [
-			'code-snippets-code-editor',
-			'react',
-			'react-dom',
-			'wp-url',
-			'wp-i18n',
-			'wp-api-fetch',
-			'wp-components',
-		];
-
 		wp_enqueue_style(
 			self::CSS_HANDLE,
 			plugins_url( "dist/edit$rtl.css", $plugin->file ),
-			$css_deps,
+			[
+				'code-editor',
+				'wp-components',
+			],
 			$plugin->version
 		);
 
 		wp_enqueue_script(
 			self::JS_HANDLE,
 			plugins_url( 'dist/edit.js', $plugin->file ),
-			$js_deps,
+			[
+				'code-snippets-code-editor',
+				'react',
+				'react-dom',
+				'wp-url',
+				'wp-i18n',
+				'wp-api-fetch',
+				'wp-components',
+				'wp-block-editor',
+			],
 			$plugin->version,
 			true
 		);
+
+		wp_set_script_translations( self::JS_HANDLE, 'code-snippets' );
 
 		if ( $desc_enabled ) {
 			remove_editor_styles();
@@ -191,12 +190,11 @@ class Edit_Menu extends Admin_Menu {
 			'CODE_SNIPPETS_EDIT',
 			[
 				'snippet'           => $this->snippet->get_fields(),
-				'menuUrl'           => $plugin->get_menu_url(),
-				'addNewUrl'         => $plugin->get_menu_url( 'add' ),
 				'pageTitleActions'  => $plugin->is_compact_menu() ? $this->page_title_action_links( [ 'manage', 'import', 'settings' ] ) : [],
 				'isPreview'         => isset( $_REQUEST['preview'] ),
 				'activateByDefault' => get_setting( 'general', 'activate_by_default' ),
 				'editorTheme'       => get_setting( 'editor', 'theme' ),
+				'scrollToNotices'   => apply_filters( 'code_snippets/scroll_to_notices', true ),
 				'extraSaveButtons'  => apply_filters( 'code_snippets/extra_save_buttons', true ),
 				'enableDownloads'   => apply_filters( 'code_snippets/enable_downloads', true ),
 				'enableDescription' => $desc_enabled,

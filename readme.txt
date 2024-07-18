@@ -1,72 +1,41 @@
 === Code Snippets ===
 Contributors: bungeshea, ver3, lightbulbman, 0aksmith, codesnippetspro
 Donate link: https://codesnippets.pro
-Tags: snippets, functions, multisite, code, php, html, css, javascript
+Tags: code, snippets, multisite, php, css
 License: MIT
 License URI: license.txt
-Stable tag: 3.5.0
-Tested up to: 6.3.1
+Stable tag: 3.6.5.1
+Tested up to: 6.5.3
 
-An easy, clean and simple way to run code snippets on your site.
+An easy, clean and simple way to enhance your site with code snippets.
 
 == Description ==
 
-Code Snippets is an easy, clean and simple way to run code snippets on your site. It removes the need to add custom snippets to your theme's `functions.php` file.
+**✂ Code Snippets** provides an effortless way to enhance your WordPress site.
 
-[**Code Snippets Pro** is now available, with full CSS, JavaScript, Gutenberg and Elementor integrations.](https://codesnippets.pro/pricing/)
+**🚀 Upgrade to Code Snippets Pro** for complete CSS, JavaScript, Gutenberg, Elementor and cloud synchronisation integrations. **[Elevate your snippets experience now!](https://codesnippets.pro/pricing)**
 
-A snippet is a small chunk of PHP code that you can use to extend the functionality of a WordPress-powered website; essentially a mini-plugin with less load on your site.
+Say goodbye to the hassle of tweaking your theme's `functions.php` file and downloading endless plugins – Code Snippets simplifies the process!
 
-Most snippet-hosting sites tell you to add snippet code to your active theme's `functions.php` file, which can get rather long and messy after a while.
+A snippet is like a mini-plugin for your WordPress site, providing added functionality without the clutter.
 
-Code Snippets changes that by providing a GUI interface for adding snippets and **actually running them on your site** just as if they were in your theme's `functions.php` file.
+Unlike other solutions that involve dumping code into your `functions.php` file, Code Snippets offers an intuitive graphical interface for seamless integration and real-time execution. Managing snippets is as easy as activating and deactivating plugins, only without the bloat and overhead.
 
-**Quick overview of Code Snippets by Imran Siddiq**
+**🎥 Watch a quick overview by Imran Siddiq:**
 
-https://youtu.be/EMjIWjcYONk
+https://youtu.be/uzND-wdSCMQ
 
-Code Snippets provides graphical interface, similar to the Plugins menu, for managing snippets. Snippets can be activated and deactivated, just like plugins.
+☁️ Each copy of Code Snippets includes full integration with the community-powered [Code Snippets Cloud](https://codesnippets.cloud/) platform, providing easy access to hundreds of tweaks and enhancements ready to power-up any WordPress site.
 
-The snippet editor includes fields for a name, a visual editor-enabled description, tags to allow you to categorize snippets, and a full-featured code editor. Snippets can be exported for transfer to another site, either in JSON for later importing by the Code Snippets plugin, or in PHP for creating your own plugin or theme.
+**🌐 Connect with us:**
 
-**Comprehensive Code Snippets tutorial with practical examples by Ferdy Korpershoek**
+* [Support Forum](https://wordpress.org/support/plugin/code-snippets)
+* [Facebook Community](https://facebook.com/groups/codesnippetsplugin)
+* [GitHub Repository](https://github.com/codesnippetspro/code-snippets)
 
-https://youtu.be/29jD2BcBX5w
+🌟 Like our plugin? Find it useful? Please consider sharing your experience by [leaving a review on WordPress.org](https://wordpress.org/support/view/plugin-reviews/code-snippets). Your feedback is instrumental to shaping our future growth!
 
-If you have any feedback, issues, or suggestions for improvements please leave a topic in the [Support Forum](https://wordpress.org/support/plugin/code-snippets), [join the community on Facebook](https://facebook.com/groups/codesnippetsplugin), or [check us out on GitHub](https://github.com/codesnippetspro/code-snippets).
-
-If you like this plugin, or it is useful to you in some way, please consider reviewing it on [WordPress.org](https://wordpress.org/support/view/plugin-reviews/code-snippets).
-
-== Translations ==
-
-Code Snippets can be used in these different languages thanks to the following translators:
-
-* Belarusian – [Hrank.com](https://www.hrank.com)
-* Brazilian Portuguese – [Bruno Borges](http://brunoborges.info)
-* Chinese – [Jincheng Shan](http://shanjincheng.com) and [诗语](https://profiles.wordpress.org/f2010525/)
-* Chinese (Taiwan) – [Alex Lion](https://www.alexclassroom.com/) and [Chun-Chih Cheng](https://profiles.wordpress.org/alex1114/)
-* Croatian – [Borisa Djuraskovic from Web Hosting Hub](https://www.webhostinghub.com/)
-* Czech  – [Lukáš Tesař](mailto:lukastesar03@gmail.com) and [Jakub Humpolec](https://profiles.wordpress.org/jumphy/)
-* Danish – [Finn Sommer Jensen](https://profiles.wordpress.org/finnsommer/)
-* Dutch – [Sander Spies](https://github.com/sander1), [Peter Smits](https://psmits.com) and [mother.of.code.a11n](https://profiles.wordpress.org/imazed/)
-* English (New Zealand) and English (UK) – [webaware](https://profiles.wordpress.org/webaware/)
-* English (South Africa) – [webaware](https://profiles.wordpress.org/webaware/) and [Ian Barnes](https://profiles.wordpress.org/ianbarnes/)
-* French – [momo-fr](https://www.momofr.net/), [Didier Demory](https://www.wptrads.com/), [Cyrille Sanson](https://100son.net/) and [Shea Bunge](https://sheabunge.com)
-* French (Canada) – [Dominic Desbiens](https://www.dominicdesbiens.com/)
-* German – [Mario Siegmann](https://web-alltag.de/), [Joerg Knoerchen](https://www.sensorgrafie.de/), [David Decker](https://deckerweb.de) and [Andreas](https://profiles.wordpress.org/perryzelda/)
-* Greek – [Konstantinos Megas](https://profiles.wordpress.org/nextdoorpanda/) and [Toni Bishop from Jrop](https://www.jrop.com/)
-* Indonesian – [Jordan Silaen from ChameleonJohn.com](https://www.chameleonjohn.com/)
-* Italian – [Usman Wagan](https://coupontoaster.com/), [Luisa Ravelli](https://profiles.wordpress.org/darkavenger/) and [ElectricFeet](https://profiles.wordpress.org/electricfeet/)
-* Japanese – [mt8](https://mt8.biz/), [Takakazu Nagaya](https://profiles.wordpress.org/tanagaya/), [Naoko Takano](https://naoko.blog/) and [melvas](https://profiles.wordpress.org/melvas/)
-* Persian – [Mohammad Novintanon](http://mnovintan.ir/)
-* Russian – [Alexander Samsonov](http://www.wordpressplugins.ru/administration/code-snippets.html), [Yui](https://profiles.wordpress.org/fierevere/), [Denis Yanchevskiy](https://denisco.pro/) and [krioteh](https://profiles.wordpress.org/krioteh/)
-* Slovak – [Ján Fajčák](https://wp.sk)
-* Spanish (Colombia) and Spanish (Ecuador) – [Javier Esteban](https://javieresteban.org/)
-* Spanish (Spain) – [Ibidem Group](https://www.ibidemgroup.com), [Javier Esteban](https://javieresteban.org/), [Fernando Tellado](https://ayudawp.com/) and [Juanma Aranda](https://juanmaaranda.com/)
-* Spanish (Venezuela) – [Yordan Soares](https://yordansoar.es/)
-* Swedish – [Argentum](https://profiles.wordpress.org/argentum/), [Fredrik](https://profiles.wordpress.org/elbogen/) and [Tor-Bjorn Fjellner](https://profiles.wordpress.org/tobifjellner/)
-* Urdu – [Samuel Badree](https://mobilemall.pk/)
-* Vietnamese – [Tuan Phan](https://profiles.wordpress.org/khunglong/)
+🌍 We'd like to thank the wonderful people who have helped contribute translations to allow Code Snippets to be used in different languages. [You can find a full list here](https://github.com/codesnippetspro/code-snippets/blob/core/CREDITS.md#translators).
 
 == Installation ==
 
@@ -114,10 +83,13 @@ You can run snippets across an entire multisite network by **Network Activating*
 Snippets are stored in the `wp_snippets` table in the WordPress database. The table name may differ depending on what your table prefix is set to.
 
 = Where can I go for help or suggest new features? =
-You can get help with Code Snippets, report bugs or errors, and suggest new features and improvements either on the [WordPress Support Forums](https://wordpress.org/support/plugin/code-snippets) or on [GitHub](https://github.com/codesnippetspro/code-snippets)
+You can get help with Code Snippets, report bugs or errors, and suggest new features and improvements either on the [WordPress Support Forums](https://wordpress.org/support/plugin/code-snippets) or on [GitHub](https://github.com/codesnippetspro/code-snippets).
 
 = How can I help contribute to the development of the Code Snippets plugin? =
 The best way to do this is to fork the [repository on GitHub](https://github.com/codesnippetspro/code-snippets) and send a pull request.
+
+= How can I report security bugs found in this plugin? =
+You can report security bugs found in the source code of this plugin through the [Patchstack Vulnerability Disclosure Program](https://patchstack.com/database/vdp/code-snippets). The Patchstack team will assist with verification, triage, and notification of security vulnerabilities.
 
 == Screenshots ==
 
@@ -127,6 +99,56 @@ The best way to do this is to fork the [repository on GitHub](https://github.com
 4. Importing snippets from an export file
 
 == Changelog ==
+
+= 3.6.5 (24 May 2024) =
+* Added: New admin menu providing useful resources and updates on the Code Snippets plugin and community.
+
+= 3.6.4 (15 Mar 2024) =
+* Fixed: Minor type compatability issue with newer versions of PHP.
+* Improvement: Increment the revision number of CSS and JS snippet when using the 'Reset Caches' debug action. (PRO)
+* Fixed: Undefined array key issue when initiating cloud sync. (PRO)
+* Fixed: Bug preventing downloading a single snippet from a bundle. (PRO)
+* Added: AI generation for all snippet types: HTML, CSS, JS. (PRO)
+* Fixed: Translations not loading for strings in JavaScript files.
+* Improved: UX in generate dialog, such as allowing 'Enter' to submit the form. (PRO)
+* Added: Button to create a cloud connection directly from the Snippets menu when disconnected. (PRO)
+
+= 3.6.3 (13 Nov 2023) =
+* Fixed: Import error when initialising cloud sync configuration. (PRO)
+* Improved: Added debug action for resetting snippets caches.
+
+= 3.6.2 (11 Nov 2023) =
+* Fixed: Error when attempting to save shared network snippets marked as active.
+* Fixed: Type error when rendering checkbox fields without a stored or default value.
+* Fixed: Removed automatic encoding of code content.
+* Fixed: Label for snippet sharing input incorrectly linked to input field.
+* Fixed: Error when attempting to download export files from Edit menu.
+* Fixed: Issue loading Freemius string overrides too early. (PRO)
+* Fixed: Fix redirect URL when connecting with OAuth on subdirectory or HTTPS sites. (PRO)
+* Fixed: Import error when attempting to completely uninstall the plugin.
+
+= 3.6.1 (07 Nov 2023) =
+* Fixed: Issue accessing fields on Snippets class.
+
+= 3.6.0 (07 Nov 2023) =
+* Updated minimum PHP requirement to 7.4.
+
+* Added: Ability to authenticate with Code Snippets Cloud using OAuth. (PRO)
+* Added: Integration with GPT AI for generating snippets. (PRO)
+* Added: Ability to generate line-by-line descriptions of snippet code with GPT AI. (PRO)
+* Added: Ability to generate tags and description text from existing snippet code with GPT AI. (PRO)
+
+* Improved: Ensure that the URL of the edit snippet page changes when adding a new snippet.
+* Improved: Snippet tags will automatically be added when focus is lost on the tags field.
+* Improved: Added debug settings menu for manually performing problem-solving actions.
+* Fixed: Moved active status border on edit name field to left-hand side.
+* Added: Filter to disable scroll-into-view functionality for edit page notices.
+* Fixed: New notices will not scroll if already at top of page.
+* Fixed: Potential CSRF vulnerability allowing an authenticated user to reset settings.
+
+= 3.5.1 (15 Sep 2023) =
+* Fixed: Undefined array key error when accessing plugin settings page. (PRO)
+* Fixed: Issue registering API endpoints affecting edit post screen. (PRO)
 
 = 3.5.0 (14 Sep 2023) =
 * Added: Support for the Code Snippets Cloud API.
@@ -199,96 +221,4 @@ thanks to contributions made by [Amaral Krichman](https://github.com/karmaral).
 * Added: WP-CLI commands for retrieving, activating, deactivating, deleting, creating, updating, exporting and importing snippets.
 * Fixed: Path to iron visible when updating the pro plugin.
 
-= 3.2.0 (22 Jul 2022) =
-* Fixed: Remove default value from SQL columns to improve compatibility with certain versions of MySQL.
-* Fixed: Delay loading snippets in Gutenberg editor blocks. (PRO)
-* Added: Option to show and hide line numbers in Gutenberg source code editor block. (PRO)
-* Added: Support for highlighting HTML, CSS, JS and embedded code in the front-end PrismJS code highlighter.
-* Added: Additional features to front-end PrismJS code highlighter, including automatic links and a copy button.
-* Added: Support for multiple code styles in the source code Gutenberg editor block. (PRO)
-* Added: Admin notice announcing release of Code Snippets Pro.
-* Fixed: Inconsistencies with translations between different plugin versions.
-* Fixed: Issue with Content Snippet shortcode information not displaying.
-* Added: Button for copying shortcode text to clipboard.
-* Improved: Include Code Snippets CSS and JS source code in distributed package.
-* Improved: Don't delete data from plugin if deleting Code Snippets Free while Code Snippets Pro is active.
-* Improved: Streamlined user interface and experience in Gutenberg editor blocks. (PRO)
-* Added: Option to choose from 44 different themes for the Prism code highlighter in the source editor block and Elementor widget. (PRO)
-* Improved: Compatibility of Elementor widgets with the latest version of Elementor. (PRO)
-* Improved: Replace icon font menu icon with embedded SVG icon.
-
-= 3.1.2 (03 Jul 2022) =
-* Updated external links and branding for Code Snippets Pro.
-* Improved: Add link URLs to settings pages, as an alternative to in-page navigation.
-* Fixed: Various fixes to block editor scripts. (PRO)
-* Fixed: Improved visual style of Gutenberg editor blocks. (PRO)
-
-= 3.1.1 (13 Jun 2022) =
-* Fixed: Download snippets feature not including snippet content.
-* Fixed: Alignment of 'opens externally' dashicon.
-* Improved: Added additional parameters to `code_snippets/export/filename` filter.
-
-= 3.1.0 (17 May 2022) =
-* Fixed: Caching inconsistencies preventing snippets and settings from refreshing on sites with persistent object caching.
-* Improved: Simplified database queries.
-* Added: More comprehensive cache coverage, including for active snippets.
-* Added: Icon to 'Go Pro' button indicating it opens an external tab.
-* Improved: Allow display styles in snippet descriptions.
-
-= 3.0.1 (14 May 2022) =
-* Fixed: Incompatibility issue with earlier versions of PHP.
-
-= 3.0.0 (14 May 2022) =
-
-__Added__
-
-* Added: HTML content snippets for displaying as shortcodes or including in the page head or footer area.
-* Added: Notice reminding users to upgrade unsupported PHP versions.
-* Added: Visual settings to add attributes to shortcodes.
-* Added: Shortcode buttons to the post and page content editors.
-* Added: Basic REST API endpoints.
-* Added: Snippet type column to the snippets table.
-* Added: Snippet type badges to Edit and Add New Snippet pages.
-* Added: Setting to control whether the current line of the code editor is highlighted.
-* Added: Display a warning when saving a snippet with missing title or code.
-* Added: Add suffix to title of cloned snippets.
-
-__Changed__
-
-* Improved: Updated plugin code to use namespaces, preventing name collisions with other plugins.
-* Improved: Added key for the 'active' and 'scope' database table columns to speed up queries.
-* Improved: Redirect from edit menu if not editing a valid snippet.
-* Improved: Moved activation switch into its own table column.
-* Improved: Updated code documentation according to WordPress standards.
-* Improved: Added snippet type labels to the tabs on the Snippets page.
-* Improved: Split settings page into tabs.
-* Improved: Use the version of CodeMirror included with WordPress where possible to inherit the additional built-in features.
-* Improved: Added hover effect to priority settings in the snippets table to show that they are editable.
-* Fixed: Snippets table layout on smaller screens.
-
-__Deprecated__
-
-* Removed: Deprecated functions and compatibility code for unsupported PHP versions.
-* Removed: Option to disable snippet scopes.
-
-__New in Pro__
-
-* Added: CSS style snippets for the site front-end and admin area.
-* Added: JavaScript snippets for the site head and body area on the front-end.
-* Added: Browser cache versioning for CSS and JavaScript snippets.
-* Added: Support for exporting and downloading CSS and JavaScript snippets.
-* Added: Support for highlighting code on the front-end.
-* Added: Editor syntax highlighting for CSS, JavaScript and HTML snippets.
-* Added: Button to preview full file when editing CSS or JavaScript snippets.
-* Added: Option to minify CSS and JavaScript snippets.
-* Added: Gutenberg editor block for displaying content snippets.
-* Added: Gutenberg editor block for displaying snippet source code.
-* Added: Elementor widget for displaying content snippets.
-* Added: Elementor widget for displaying snippet source code.
-
 **[The full changelog is available on GitHub](https://github.com/codesnippetspro/code-snippets/blob/master/CHANGELOG.md)**
-
-== Upgrade Notice ==
-
-= 3.5.0 =
-Code Snippets Cloud is here! Share snippets and synchronise between sites.

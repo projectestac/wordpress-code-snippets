@@ -32,5 +32,6 @@ return array(
     'Code_Snippets\\Snippet' => $baseDir . '/php/class-snippet.php',
     'Code_Snippets\\Upgrade' => $baseDir . '/php/class-upgrade.php',
     'Code_Snippets\\Validator' => $baseDir . '/php/class-validator.php',
+    'Code_Snippets\\Welcome_Menu' => $baseDir . '/php/admin-menus/class-welcome-menu.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );
