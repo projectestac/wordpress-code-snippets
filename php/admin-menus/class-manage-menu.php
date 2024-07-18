@@ -43,6 +43,14 @@ class Manage_Menu extends Admin_Menu {
 	 * Register action and filter hooks
 	 */
 	public function run() {
+
+        // XTEC ************ AFEGIT - Restrict access to xtecadmin
+        // 19.10.28 @aginard
+        if (!is_xtec_super_admin()) {
+            return false;
+        }
+        // ******************* FI
+
 		parent::run();
 
 		if ( code_snippets()->is_compact_menu() ) {
