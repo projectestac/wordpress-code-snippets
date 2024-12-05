@@ -20,7 +20,7 @@ return array(
     'Code_Snippets\\Edit_Menu' => $baseDir . '/php/admin-menus/class-edit-menu.php',
     'Code_Snippets\\Export' => $baseDir . '/php/export/class-export.php',
     'Code_Snippets\\Export_Attachment' => $baseDir . '/php/export/class-export-attachment.php',
-    'Code_Snippets\\Frontend' => $baseDir . '/php/front-end/class-frontend.php',
+    'Code_Snippets\\Front_End' => $baseDir . '/php/front-end/class-front-end.php',
     'Code_Snippets\\Import' => $baseDir . '/php/export/class-import.php',
     'Code_Snippets\\Import_Menu' => $baseDir . '/php/admin-menus/class-import-menu.php',
     'Code_Snippets\\List_Table' => $baseDir . '/php/class-list-table.php',
@@ -32,6 +32,7 @@ return array(
     'Code_Snippets\\Snippet' => $baseDir . '/php/class-snippet.php',
     'Code_Snippets\\Upgrade' => $baseDir . '/php/class-upgrade.php',
     'Code_Snippets\\Validator' => $baseDir . '/php/class-validator.php',
+    'Code_Snippets\\Welcome_API' => $baseDir . '/php/class-welcome-api.php',
     'Code_Snippets\\Welcome_Menu' => $baseDir . '/php/admin-menus/class-welcome-menu.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

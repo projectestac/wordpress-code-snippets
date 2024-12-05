@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70
+class ComposerStaticInit935fdf2d931d26b4c118677ab977d74b
 {
     public static $prefixLengthsPsr4 = array (
         'C' => 
@@ -35,7 +35,7 @@ class ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70
         'Code_Snippets\\Edit_Menu' => __DIR__ . '/../..' . '/php/admin-menus/class-edit-menu.php',
         'Code_Snippets\\Export' => __DIR__ . '/../..' . '/php/export/class-export.php',
         'Code_Snippets\\Export_Attachment' => __DIR__ . '/../..' . '/php/export/class-export-attachment.php',
-        'Code_Snippets\\Frontend' => __DIR__ . '/../..' . '/php/front-end/class-frontend.php',
+        'Code_Snippets\\Front_End' => __DIR__ . '/../..' . '/php/front-end/class-front-end.php',
         'Code_Snippets\\Import' => __DIR__ . '/../..' . '/php/export/class-import.php',
         'Code_Snippets\\Import_Menu' => __DIR__ . '/../..' . '/php/admin-menus/class-import-menu.php',
         'Code_Snippets\\List_Table' => __DIR__ . '/../..' . '/php/class-list-table.php',
@@ -47,6 +47,7 @@ class ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70
         'Code_Snippets\\Snippet' => __DIR__ . '/../..' . '/php/class-snippet.php',
         'Code_Snippets\\Upgrade' => __DIR__ . '/../..' . '/php/class-upgrade.php',
         'Code_Snippets\\Validator' => __DIR__ . '/../..' . '/php/class-validator.php',
+        'Code_Snippets\\Welcome_API' => __DIR__ . '/../..' . '/php/class-welcome-api.php',
         'Code_Snippets\\Welcome_Menu' => __DIR__ . '/../..' . '/php/admin-menus/class-welcome-menu.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
@@ -54,9 +55,9 @@ class ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInita20c06c1b12fdd2d2a5c608da266cb70::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit935fdf2d931d26b4c118677ab977d74b::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit935fdf2d931d26b4c118677ab977d74b::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit935fdf2d931d26b4c118677ab977d74b::$classMap;
 
         }, null, ClassLoader::class);
     }
