@@ -29,6 +29,11 @@ class Front_End {
 	const PRISM_HANDLE = 'code-snippets-prism';
 
 	/**
+	 * Maximum depth for shortcode recursion.
+	 */
+	const MAX_SHORTCODE_DEPTH = 5;
+
+	/**
 	 * Class constructor
 	 */
 	public function __construct() {
@@ -132,18 +137,18 @@ class Front_End {
 		}
 
 		// Loop through the posts, checking for an existing shortcode, short-circuiting if possible.
-		$found_shortcode = false;
+		$found_shortcode_content = null;
 
 		foreach ( $posts as $post ) {
 			if ( false !== stripos( $post->post_content, '[' . self::SOURCE_SHORTCODE ) ||
 			     false !== strpos( $post->post_content, '<!-- wp:code-snippets/source ' ) ) {
-				$found_shortcode = true;
+				$found_shortcode_content = $post->post_content;
 				break;
 			}
 		}
 
 		// Load assets on the appropriate hook if a matching shortcode was found.
-		if ( $found_shortcode ) {
+		if ( null !== $found_shortcode_content ) {
 			$this->register_prism_assets();
 
 			add_action(
@@ -266,7 +271,7 @@ class Front_End {
 		$original_atts = $atts;
 
 		$atts = shortcode_atts(
-			array(
+			[
 				'id'         => 0,
 				'snippet_id' => 0,
 				'network'    => false,
@@ -274,7 +279,7 @@ class Front_End {
 				'format'     => false,
 				'shortcodes' => false,
 				'debug'      => false,
-			),
+			],
 			$atts,
 			self::CONTENT_SHORTCODE
 		);
@@ -288,7 +293,7 @@ class Front_End {
 
 		// Render the source code if this is not a shortcode snippet.
 		if ( 'content' !== $snippet->scope ) {
-			return $snippet->id ? $this->render_snippet_source( $snippet ) : '';
+			return $snippet->id ? $this->render_snippet_source( $snippet ) : $this->invalid_id_warning( $snippet->id );
 		}
 
 		// If the snippet is inactive, either display a message or render nothing.
@@ -322,13 +327,9 @@ class Front_End {
 		}
 
 		if ( $atts['shortcodes'] ) {
-			// Remove this shortcode from the list to prevent recursion.
+			// Temporarily remove this shortcode from the list to prevent recursion while executing do_shortcode.
 			remove_shortcode( self::CONTENT_SHORTCODE );
-
-			// Evaluate shortcodes.
 			$content = do_shortcode( $atts['format'] ? shortcode_unautop( $content ) : $content );
-
-			// Add this shortcode back to the list.
 			add_shortcode( self::CONTENT_SHORTCODE, [ $this, 'render_content_shortcode' ] );
 		}
 

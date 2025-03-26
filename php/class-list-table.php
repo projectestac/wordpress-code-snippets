@@ -135,7 +135,7 @@ class List_Table extends WP_List_Table {
 	 * @return array<string> Modified list of hidden columns.
 	 */
 	public function default_hidden_columns( array $hidden ): array {
-		$hidden[] = 'id';
+		array_push( $hidden, 'id', 'code', 'cloud_id', 'revision' );
 		return $hidden;
 	}
 
@@ -307,6 +307,7 @@ class List_Table extends WP_List_Table {
 	 * @return string The content of the column to output.
 	 */
 	protected function column_name( Snippet $snippet ): string {
+
 		$row_actions = $this->row_actions(
 			$this->get_snippet_action_links( $snippet ),
 			apply_filters( 'code_snippets/list_table/row_actions_always_visible', true )
@@ -315,12 +316,11 @@ class List_Table extends WP_List_Table {
 		$out = esc_html( $snippet->display_name );
 
 		if ( 'global' !== $snippet->scope ) {
-			$out .= ' <span class="dashicons dashicons-' . $snippet->scope_icon . '"></span>';
+			$out .= sprintf( ' <span class="dashicons dashicons-%s"></span>', $snippet->scope_icon );
 		}
 
 		// Add a link to the snippet if it isn't an unreadable network-only snippet.
 		if ( $this->is_network || ! $snippet->network || current_user_can( code_snippets()->get_network_cap_name() ) ) {
-
 			$out = sprintf(
 				'<a href="%s" class="snippet-name">%s</a>',
 				esc_attr( code_snippets()->get_snippet_edit_url( $snippet->id, $snippet->network ? 'network' : 'admin' ) ),
@@ -333,11 +333,6 @@ class List_Table extends WP_List_Table {
 		}
 
 		// Return the name contents.
-		if ( code_snippets()->cloud_api->get_cloud_link( $snippet->id, 'local' ) ) {
-			// Make cloud icon grey to show it is from the cloud.
-			$out = '<span class="dashicons dashicons-cloud cloud-icon cloud-downloaded"></span>' . $out;
-		}
-
 		$out = apply_filters( 'code_snippets/list_table/column_name', $out, $snippet );
 
 		return $out . $row_actions;
@@ -368,6 +363,8 @@ class List_Table extends WP_List_Table {
 	 * @return string The column output.
 	 */
 	protected function column_tags( Snippet $snippet ): string {
+
+		// Return now if there are no tags.
 		if ( empty( $snippet->tags ) ) {
 			return '';
 		}
@@ -669,12 +666,10 @@ class List_Table extends WP_List_Table {
 	 *
 	 * @param int    $id     Snippet ID.
 	 * @param string $action Action to perform.
-	 * @param string $scope  Snippet scope; used for cache busting CSS and JS snippets.
 	 *
 	 * @return bool|string Result of performing action
 	 */
-	private function perform_action( int $id, string $action, string $scope = '' ) {
-
+	private function perform_action( int $id, string $action ) {
 		switch ( $action ) {
 
 			case 'activate':
@@ -884,7 +879,13 @@ class List_Table extends WP_List_Table {
 	 * @return void
 	 */
 	private function fetch_shared_network_snippets() {
+		/**
+		 * Table data.
+		 *
+		 * @var $snippets array<string, Snippet[]>
+		 */
 		global $snippets;
+
 		$ids = get_site_option( 'shared_network_snippets' );
 
 		if ( ! is_multisite() || ! $ids ) {
@@ -895,7 +896,6 @@ class List_Table extends WP_List_Table {
 			$limit = count( $snippets['all'] );
 
 			for ( $i = 0; $i < $limit; $i++ ) {
-				/** Snippet @var Snippet $snippet */
 				$snippet = &$snippets['all'][ $i ];
 
 				if ( in_array( $snippet->id, $ids, true ) ) {
@@ -1018,10 +1018,12 @@ class List_Table extends WP_List_Table {
 		}
 
 		// Count the totals for each section.
-		$totals = array();
-		foreach ( $snippets as $type => $list ) {
-			$totals[ $type ] = count( $list );
-		}
+		$totals = array_map(
+			function ( $section_snippets ) {
+				return count( $section_snippets );
+			},
+			$snippets
+		);
 
 		// If the current status is empty, default to all.
 		if ( empty( $snippets[ $status ] ) ) {
@@ -1260,7 +1262,7 @@ class List_Table extends WP_List_Table {
 			// translators: 1: link URL, 2: link text.
 			printf(
 				'&nbsp;<a class="button clear-filters" href="%s">%s</a>',
-				esc_url( remove_query_arg( array( 's', 'tag' ) ) ),
+				esc_url( remove_query_arg( array( 's', 'tag', 'cloud_search' ) ) ),
 				esc_html__( 'Clear Filters', 'code-snippets' )
 			);
 		}
@@ -1294,9 +1296,9 @@ class List_Table extends WP_List_Table {
 		$snippets = get_snippets( $ids, $this->is_network );
 
 		foreach ( $snippets as $snippet ) {
-			// Copy all data from the previous snippet aside from the ID and active status.
 			$snippet->id = 0;
 			$snippet->active = false;
+			$snippet->cloud_id = '';
 
 			// translators: %s: snippet title.
 			$snippet->name = sprintf( __( '%s [CLONE]', 'code-snippets' ), $snippet->name );

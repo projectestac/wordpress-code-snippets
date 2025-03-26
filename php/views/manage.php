@@ -9,7 +9,7 @@
 namespace Code_Snippets;
 
 /**
- * Loaded from the Manage_Menu class.
+ * Loaded from the manage menu class.
  *
  * @var Manage_Menu $this
  */
@@ -119,6 +119,7 @@ if ( false !== strpos( code_snippets()->version, 'beta' ) ) {
 			break;
 	}
 
-	do_action( 'code_snippets/admin/manage' );
+	do_action( 'code_snippets/admin/manage', $current_type );
+
 	?>
 </div>

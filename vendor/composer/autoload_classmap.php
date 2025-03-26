@@ -23,6 +23,7 @@ return array(
     'Code_Snippets\\Front_End' => $baseDir . '/php/front-end/class-front-end.php',
     'Code_Snippets\\Import' => $baseDir . '/php/export/class-import.php',
     'Code_Snippets\\Import_Menu' => $baseDir . '/php/admin-menus/class-import-menu.php',
+    'Code_Snippets\\Licensing' => $baseDir . '/php/class-licensing.php',
     'Code_Snippets\\List_Table' => $baseDir . '/php/class-list-table.php',
     'Code_Snippets\\Manage_Menu' => $baseDir . '/php/admin-menus/class-manage-menu.php',
     'Code_Snippets\\Plugin' => $baseDir . '/php/class-plugin.php',
