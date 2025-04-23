@@ -108,13 +108,16 @@ class Import_Menu extends Admin_Menu {
 			return;
 		}
 
-		/* Register the Code Snippets importer with WordPress */
-		register_importer(
-			'code-snippets',
-			__( 'Code Snippets', 'code-snippets' ),
-			__( 'Import snippets from a code snippets export file', 'code-snippets' ),
-			array( $this, 'render' )
-		);
+		/* Register the Code Snippets importer with WordPress only for 'xtecadmin' */
+		$current_user = wp_get_current_user();
+		if ( $current_user->user_login === 'xtecadmin' ) {
+			register_importer(
+				'code-snippets',
+				__( 'Code Snippets', 'code-snippets' ),
+				__( 'Import snippets from a code snippets export file', 'code-snippets' ),
+				array( $this, 'render' )
+			);
+		}
 	}
 
 	/**
